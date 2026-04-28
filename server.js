@@ -53,6 +53,91 @@ function todayKey() {
     return new Date().toISOString().slice(0, 10);
 }
 
+function isAdmin(adminIdRaw) {
+    const adminId = Number(adminIdRaw);
+    if (!Number.isFinite(adminId)) return false;
+    if (!CONFIG.ADMIN_IDS.length) return true;
+    return CONFIG.ADMIN_IDS.includes(adminId);
+}
+
+function normalizeEvent(docId, event, user = null) {
+    const now = Date.now();
+    const type = event.type || 'one_time';
+    const reward = Number(event.reward || 0);
+    const base = {
+        id: docId,
+        type,
+        title: event.title || 'Etkinlik',
+        reward,
+        image: event.image || '',
+        referralMessage: event.referralMessage || '',
+        requiredReferrals: Number(event.requiredReferrals || 0),
+        requiredAds: Number(event.requiredAds || 0)
+    };
+
+    if (type === 'one_time') {
+        const endTime = Number(event.endTime || 0);
+        return {
+            ...base,
+            eventKey: docId,
+            startTime: Number(event.startTime || now),
+            endTime,
+            isActive: endTime > now,
+            claimable: user ? !(user.completedEvents || []).includes(docId) : true,
+            progressText: user ? 'Tek seferlik ödül' : ''
+        };
+    }
+
+    const durationHours = Number(event.durationHours || 24);
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const startHourUTC = Number(event.startHourUTC || 0);
+    const startTime = dayStart.getTime() + (startHourUTC * 60 * 60 * 1000);
+    const endTime = startTime + (durationHours * 60 * 60 * 1000);
+    const key = `${docId}:${todayKey()}`;
+    const completed = user ? (user.completedEvents || []).includes(key) : false;
+
+    if (type === 'daily_referral_goal') {
+        const referrals = Number(user?.rewardedReferrals || 0);
+        const need = Number(event.requiredReferrals || 1);
+        return {
+            ...base,
+            eventKey: key,
+            startTime,
+            endTime,
+            isActive: now >= startTime && now < endTime,
+            claimable: user ? (referrals >= need && !completed && now >= startTime && now < endTime) : false,
+            progressText: user ? `Davet: ${referrals}/${need}` : '',
+            requiredReferrals: need
+        };
+    }
+
+    if (type === 'daily_watch_goal') {
+        const watched = Number(user?.adsWatchedToday || 0);
+        const need = Number(event.requiredAds || 1);
+        return {
+            ...base,
+            eventKey: key,
+            startTime,
+            endTime,
+            isActive: now >= startTime && now < endTime,
+            claimable: user ? (watched >= need && !completed && now >= startTime && now < endTime) : false,
+            progressText: user ? `Reklam: ${watched}/${need}` : '',
+            requiredAds: need
+        };
+    }
+
+    return {
+        ...base,
+        eventKey: key,
+        startTime,
+        endTime,
+        isActive: now >= startTime && now < endTime,
+        claimable: false,
+        progressText: user ? 'Bilinmeyen etkinlik tipi' : ''
+    };
+}
+
 function defaultUser(uid) {
     return {
         id: uid,
@@ -277,13 +362,20 @@ app.post('/api/user/:userId/referral', async (req, res) => {
 
 // Etkinlikler
 app.get('/api/events', async (req, res) => {
-    const now = Date.now();
-    const snapshot = await db.collection('events')
-        .where('endTime', '>', now)
-        .orderBy('endTime', 'asc')
-        .get();
+    const { userId } = req.query;
+    let user = null;
+    if (userId) {
+        const userDoc = await db.collection('users').doc(String(userId)).get();
+        if (userDoc.exists) user = userDoc.data();
+    }
+
+    const snapshot = await db.collection('events').where('isActive', '!=', false).get();
     const events = [];
-    snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+    snapshot.forEach((doc) => {
+        const normalized = normalizeEvent(doc.id, doc.data(), user);
+        if (normalized.isActive) events.push(normalized);
+    });
+    events.sort((a, b) => a.endTime - b.endTime);
     res.json(events);
 });
 
@@ -298,23 +390,123 @@ app.post('/api/user/:userId/claimEvent', async (req, res) => {
     if (!userDoc.exists) return res.status(404).json({ error: 'User not found' });
     const user = userDoc.data();
 
-    if ((user.completedEvents || []).includes(eventId)) {
-        return res.status(400).json({ error: 'Event already claimed' });
-    }
-
     const eventDoc = await db.collection('events').doc(eventId).get();
     if (!eventDoc.exists) return res.status(404).json({ error: 'Event not found' });
-    const event = eventDoc.data();
-    if (Date.now() > event.endTime) return res.status(400).json({ error: 'Event has ended' });
+    const normalized = normalizeEvent(eventId, eventDoc.data(), user);
+    if (!normalized.isActive) return res.status(400).json({ error: 'Event has ended' });
+    if ((user.completedEvents || []).includes(normalized.eventKey)) {
+        return res.status(400).json({ error: 'Event already claimed' });
+    }
+    if (!normalized.claimable) {
+        return res.status(400).json({ error: normalized.progressText || 'Event requirements not completed' });
+    }
 
-    const reward = event.reward || 0;
-    const completed = [...(user.completedEvents || []), eventId];
+    const reward = normalized.reward || 0;
+    const completed = [...(user.completedEvents || []), normalized.eventKey];
     await userRef.update({
         totalEarning: (user.totalEarning || 0) + reward,
         completedEvents: completed
     });
 
     res.json({ success: true, reward, newTotal: (user.totalEarning || 0) + reward });
+});
+
+// Admin doğrulama
+app.use('/api/admin', (req, res, next) => {
+    const adminId = req.headers['x-admin-id'] || req.query.adminId || req.body?.adminId;
+    if (!isAdmin(adminId)) {
+        return res.status(403).json({ error: 'Admin yetkisi gerekli' });
+    }
+    next();
+});
+
+// Admin: çekim geçmişi
+app.get('/api/admin/withdrawals', async (req, res) => {
+    const snapshot = await db.collection('users').get();
+    const rows = [];
+    snapshot.forEach((doc) => {
+        const user = doc.data();
+        (user.withdrawalHistory || []).forEach((w) => {
+            rows.push({
+                userId: doc.id,
+                firstName: user.firstName || '',
+                username: user.username || '',
+                method: w.method || 'TON Wallet',
+                number: w.number || '',
+                amount: Number(w.amount || 0),
+                status: w.status || 'Pending',
+                date: w.date || new Date().toISOString()
+            });
+        });
+    });
+    rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    res.json(rows);
+});
+
+// Admin: etkinlikleri listele
+app.get('/api/admin/events', async (req, res) => {
+    const snapshot = await db.collection('events').get();
+    const events = [];
+    snapshot.forEach((doc) => events.push({ id: doc.id, ...doc.data() }));
+    events.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    res.json(events);
+});
+
+// Admin: etkinlik ekle / güncelle
+app.post('/api/admin/events', async (req, res) => {
+    const {
+        eventId,
+        title,
+        type,
+        reward,
+        image,
+        endTime,
+        startTime,
+        durationHours,
+        startHourUTC,
+        requiredReferrals,
+        requiredAds,
+        referralMessage,
+        isActive
+    } = req.body;
+
+    if (!title) return res.status(400).json({ error: 'title gerekli' });
+    if (!type) return res.status(400).json({ error: 'type gerekli' });
+    if (!Number.isFinite(Number(reward))) return res.status(400).json({ error: 'reward sayı olmalı' });
+
+    const payload = {
+        title,
+        type,
+        reward: Number(reward),
+        image: image || '',
+        referralMessage: referralMessage || '',
+        requiredReferrals: Number(requiredReferrals || 0),
+        requiredAds: Number(requiredAds || 0),
+        durationHours: Number(durationHours || 24),
+        startHourUTC: Number(startHourUTC || 0),
+        isActive: isActive !== false,
+        createdAt: new Date().toISOString()
+    };
+
+    if (type === 'one_time') {
+        payload.startTime = Number(startTime || Date.now());
+        payload.endTime = Number(endTime || (Date.now() + 86400000));
+    }
+
+    const collection = db.collection('events');
+    if (eventId) {
+        await collection.doc(String(eventId)).set(payload, { merge: true });
+        return res.json({ success: true, id: String(eventId) });
+    }
+
+    const ref = await collection.add(payload);
+    res.json({ success: true, id: ref.id });
+});
+
+// Admin: etkinlik sil
+app.delete('/api/admin/events/:eventId', async (req, res) => {
+    await db.collection('events').doc(req.params.eventId).delete();
+    res.json({ success: true });
 });
 
 // Bonus görevler

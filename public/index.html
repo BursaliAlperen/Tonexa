@@ -292,19 +292,23 @@
         async function loadEvents() {
             const container = document.getElementById('events-container');
             try {
-                const events = await api('/api/events');
+                const events = await api(`/api/events?userId=${encodeURIComponent(userId)}`);
                 container.innerHTML = '';
                 eventTimers.forEach(clearInterval);
                 if (!events.length) return;
                 events.forEach(event => {
+                    const isCompleted = state.completedEvents.includes(event.eventKey || event.id);
+                    const isClaimable = !!event.claimable && !isCompleted;
                     const card = document.createElement('div');
                     card.className = 'event-card';
                     card.innerHTML = `
                         <img class="event-img" src="${event.image || 'https://via.placeholder.com/400x140?text=Etkinlik'}" alt="${event.title}">
                         <div class="event-info">
                             <div class="event-countdown" id="timer-${event.id}"></div>
+                            ${event.progressText ? `<div class="event-countdown">${event.progressText}</div>` : ''}
+                            ${event.referralMessage ? `<div class="event-countdown">📣 ${event.referralMessage}</div>` : ''}
                             <div class="event-reward">🎁 ${event.reward} TON</div>
-                            <button class="action-button" id="claim-${event.id}" ${state.completedEvents.includes(event.id) ? 'disabled' : ''}>${state.completedEvents.includes(event.id) ? '✔️ Alındı' : 'Ödülü Al'}</button>
+                            <button class="action-button" id="claim-${event.id}" ${isClaimable ? '' : 'disabled'}>${isCompleted ? '✔️ Alındı' : (isClaimable ? 'Ödülü Al' : 'Şartları Tamamla')}</button>
                         </div>`;
                     container.appendChild(card);
 
@@ -320,12 +324,12 @@
                     eventTimers.push(setInterval(updateTimer, 1000));
 
                     const claimBtn = document.getElementById(`claim-${event.id}`);
-                    if (claimBtn && !state.completedEvents.includes(event.id)) {
+                    if (claimBtn && !isCompleted) {
                         claimBtn.addEventListener('click', async () => {
                             try {
                                 const res = await api(`/api/user/${userId}/claimEvent`, 'POST', { eventId: event.id });
                                 state.totalEarning = res.newTotal;
-                                state.completedEvents.push(event.id);
+                                state.completedEvents.push(event.eventKey || event.id);
                                 updateUI();
                                 claimBtn.textContent = '✔️ Alındı';
                                 claimBtn.disabled = true;
