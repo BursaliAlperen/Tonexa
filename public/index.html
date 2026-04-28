@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>@TonexaAdsBot – Earn TON</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>(function(){ document.documentElement.setAttribute('data-theme','dark'); })();</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap');
+        :root { --primary: #007AFF; --primary-rgb: 0,122,255; --secondary: #0056B3; --bg: #F0F2F5; --card: #FFF; --text: #1D1D1F; --text-light: #6E6E73; --border: #E5E5EA; --glass: rgba(240,242,245,0.8); }
+        [data-theme="dark"] { --primary: #0A84FF; --primary-rgb: 10,132,255; --secondary: #3395FF; --bg: #000; --card: #1C1C1E; --text: #F5F5F7; --text-light: #8E8E93; --border: #3A3A3C; --glass: rgba(28,28,30,0.8); }
+        * { box-sizing: border-box; }
+        body { font-family: 'Noto Sans', sans-serif; margin: 0; padding: 20px 15px 100px; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+        #preloader { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        #preloader i { font-size: 48px; color: var(--primary); animation: spin 1.5s linear infinite; }
+        #preloader-percentage { font-size: 20px; font-weight: 700; color: var(--text); }
+        #preloader-footer { position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; z-index: 10000; }
+        #preloader-footer a { font-size: 14px; color: var(--text-light); text-decoration: none; }
+        .container { max-width: 500px; margin: 0 auto; display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 24px; }
+        #profile-pic { width: 52px; height: 52px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; overflow: hidden; border: 2px solid var(--card); }
+        #profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+        #greeting { font-size: 22px; font-weight: 800; }
+        .balance-card { position: relative; overflow: hidden; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 28px; border-radius: 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 12px 25px rgba(var(--primary-rgb),0.2); }
+        .balance-card::after { content: '\f51e'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: -20px; bottom: -30px; font-size: 120px; opacity: 0.1; transform: rotate(-15deg); pointer-events: none; }
+        .ton-bg-icon { position: absolute; left: -10px; bottom: -20px; opacity: 0.1; pointer-events: none; width: 80px; height: 80px; }
+        .ton-bg-icon svg { width: 100%; height: 100%; color: white; }
+        .balance-card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 500; opacity: 0.9; position: relative; z-index: 1; }
+        .balance-card .amount { font-size: 48px; font-weight: 800; position: relative; z-index: 1; }
+        .level-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-top: 8px; position: relative; z-index: 1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-item { position: relative; overflow: hidden; background: var(--card); padding: 20px; border-radius: 18px; text-align: center; border: 1px solid var(--border); }
+        .stat-item .bg-icon { position: absolute; right: 5px; bottom: 5px; font-size: 50px; opacity: 0.08; color: var(--text); pointer-events: none; }
+        .stat-item .icon { font-size: 28px; color: var(--primary); margin-bottom: 12px; }
+        .stat-item .value { font-size: 24px; font-weight: 800; }
+        .stat-item .label { font-size: 14px; color: var(--text-light); }
+        .card { background: var(--card); padding: 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .chart-container { position: relative; height: 200px; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb),0.4); } 70% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb),0); } 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb),0); } }
+        .action-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px; border: none; border-radius: 16px; background: var(--primary); color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .action-button.pulsing { animation: pulse 2s infinite; }
+        .action-button:disabled { background: #8E8E93; cursor: not-allowed; }
+        .secondary-button { background: transparent; color: var(--primary); border: 2px solid var(--primary); margin-top: 15px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; display: grid; grid-template-columns: repeat(5,1fr); padding: 10px 15px; background: var(--glass); backdrop-filter: blur(10px); border-top: 1px solid var(--border); z-index: 100; }
+        .nav-button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; border-radius: 12px; color: var(--text-light); font-size: 12px; font-weight: 500; background: transparent; border: none; cursor: pointer; }
+        .nav-button.active, .nav-button:hover { color: var(--primary); background: rgba(var(--primary-rgb),0.1); }
+        .nav-button i { font-size: 20px; }
+        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); align-items: flex-end; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; margin: 0 auto; max-height: 80vh; overflow-y: auto; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-content input, .modal-content select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; background: var(--bg); color: var(--text); }
+        .history-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .history-details { display: flex; flex-direction: column; gap: 4px; }
+        .history-details .method-number { font-weight: 700; }
+        .history-details .date { font-size: 12px; color: var(--text-light); }
+        .history-amount { font-size: 18px; font-weight: 800; text-align: right; }
+        .history-status { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+        .history-status.success { color: #28a745; background: rgba(40,167,69,0.1); }
+        .history-status.pending { color: #fd7e14; background: rgba(253,126,20,0.1); }
+        .bonus-item, .event-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: var(--bg); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .bonus-item .details, .event-details { display: flex; flex-direction: column; gap: 4px; }
+        .bonus-item .title, .event-title { font-weight: 600; }
+        .event-card { flex-direction: column; align-items: stretch; padding: 0; overflow: hidden; }
+        .event-img { width: 100%; height: 140px; object-fit: cover; }
+        .event-info { padding: 15px; }
+        .event-countdown { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+        .event-reward { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid var(--secondary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: none; }
+        #ad-loader-overlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 15px; color: white; }
+        .loader { width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="preloader">
+        <i class="fa-solid fa-spinner"></i>
+        <div id="preloader-percentage">0%</div>
+    </div>
+    <div id="preloader-footer">
+        <a href="https://t.me/TonexaAdsBot" target="_blank">@TonexaAdsBot</a>
+    </div>
+
+    <div id="ad-loader-overlay">
+        <div class="loader"></div>
+        <span>Loading Ad...</span>
+    </div>
+
+    <div class="container">
+        <div class="profile-header">
+            <div id="profile-pic"><i class="fa-solid fa-user"></i></div>
+            <h1 id="greeting">Welcome!</h1>
+        </div>
+
+        <div class="balance-card">
+            <div class="ton-bg-icon">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="currentColor"/><path d="M7 8h10l-4 8H9l-2-8z" fill="white"/></svg>
+            </div>
+            <h3>Your Balance</h3>
+            <div class="amount" id="total-earning">0.000 TON</div>
+            <div class="level-badge" id="level-badge">Level 1 · 0%</div>
+        </div>
+
+        <div id="events-container"></div>
+
+        <div class="stats-grid">
+            <div class="stat-item"><i class="fa-solid fa-rectangle-ad bg-icon"></i><div class="icon"><i class="fa-solid fa-rectangle-ad"></i></div><div class="value" id="ad-count">0</div><div class="label">Ads Watched</div></div>
+            <div class="stat-item"><i class="fa-solid fa-calendar-day bg-icon"></i><div class="icon"><i class="fa-solid fa-calendar-day"></i></div><div class="value" id="ads-today-count">0 / 50</div><div class="label">Today's Ads</div></div>
+            <div class="stat-item"><i class="fa-solid fa-users bg-icon"></i><div class="icon"><i class="fa-solid fa-users"></i></div><div class="value" id="referral-count">0</div><div class="label">Referrals</div></div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">Today's Task</h3>
+            <button class="action-button" id="watch-ad-button"><i class="fa-solid fa-play"></i><span>Watch Ad</span></button>
+            <button class="action-button secondary-button" id="join-channel-button"><i class="fa-brands fa-telegram"></i><span>Join Channel</span></button>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">Weekly Activity</h3>
+            <div class="chart-container"><canvas id="activityChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav-bar">
+        <button class="nav-button" onclick="showModal('withdrawModal',this)"><i class="fa-solid fa-money-bill-transfer"></i><span>Withdraw</span></button>
+        <button class="nav-button" onclick="showModal('historyModal',this)"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
+        <button class="nav-button" onclick="showModal('inviteModal',this)"><i class="fa-solid fa-user-plus"></i><span>Invite</span></button>
+        <button class="nav-button" onclick="showModal('supportModal',this)"><i class="fa-solid fa-headset"></i><span>Support</span></button>
+        <button class="nav-button" onclick="showModal('bonusTasksModal',this)"><i class="fa-solid fa-star"></i><span>Bonus</span></button>
+    </div>
+
+    <!-- MODALLAR -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('withdrawModal')">&times;</span>
+            <h3 class="card-title">Withdraw TON</h3>
+            <p id="min-withdraw-text"></p>
+            <form id="withdraw-form">
+                <select id="method" required><option value="">Select Payment Method</option><option value="TON Wallet">TON Wallet</option></select>
+                <input type="text" id="account-number" placeholder="Your TON wallet address" required>
+                <input type="number" step="0.001" id="withdraw-amount" placeholder="Amount in TON" required>
+                <button type="submit" class="action-button" id="withdraw-submit-button">
+                    <span class="button-text">Submit Request</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+            <p style="text-align:center;font-size:12px;margin-top:10px;">Fee: 0.01 TON</p>
+        </div>
+    </div>
+
+    <div id="supportModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('supportModal')">&times;</span>
+            <h3 class="card-title">Support</h3>
+            <p>Admin: <b>@AlperenTHE</b></p>
+            <button class="action-button" id="admin-contact-button"><i class="fa-brands fa-telegram"></i><span>Contact Admin</span></button>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('historyModal')">&times;</span>
+            <h3 class="card-title">Withdrawal History</h3>
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('inviteModal')">&times;</span>
+            <h3 class="card-title">Invite Friends</h3>
+            <p>Earn 0.01 TON per referral.</p>
+            <button class="action-button" id="copy-link-button"><i class="fa-solid fa-copy"></i><span>Copy Link</span></button>
+            <button class="action-button secondary-button" id="share-link-button"><i class="fa-solid fa-share-nodes"></i><span>Share Link</span></button>
+        </div>
+    </div>
+
+    <div id="bonusTasksModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('bonusTasksModal')">&times;</span>
+            <h3 class="card-title">Bonus Tasks</h3>
+            <div id="bonus-tasks-list"></div>
+        </div>
+    </div>
+
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('welcomeModal')">&times;</span>
+            <h3 id="welcome-title" class="card-title"></h3>
+            <p id="welcome-message"></p>
+            <button class="action-button" onclick="closeModal('welcomeModal')">I Understand</button>
+        </div>
+    </div>
+
+    <script>
+        // ============ FIREBASE & API AYARLARI ============
+        const API_BASE = ''; // Aynı sunucuda olduğu için göreceli
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        const userId = tg?.initDataUnsafe?.user?.id || 'testuser';
+
+        // Firebase Web Config (istemci – sadece okuma)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9FLQ3tMgCacphTCuRmjct5ChYTxM41y4",
+            authDomain: "tonexa-ads.firebaseapp.com",
+            projectId: "tonexa-ads",
+            storageBucket: "tonexa-ads.firebasestorage.app",
+            messagingSenderId: "469411381675",
+            appId: "1:469411381675:web:b5924cce5d4a541797d2ee"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const firestoreDB = firebase.firestore();
+
+        // ============ CONFIG ============
+        const CONFIG = {
+            BOT_USERNAME: 'TonexaAdsBot',
+            CHANNEL_LINK: 'https://t.me/BasicTouchPro',
+            ADMIN_USERNAME: 'AlperenTHE',
+            LEVEL_XP: [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800, 4700, 5700, 6800, 8000, 9300],
+            LEVEL_REWARDS: [
+                0.002, 0.002214, 0.002428, 0.002642, 0.002856,
+                0.003070, 0.003284, 0.003498, 0.003712, 0.003926,
+                0.004140, 0.004354, 0.004568, 0.004782, 0.005
+            ],
+            WELCOME_MSG: `Earn TON by watching ads!\n💎 Level 1: 0.002 TON → Level 15: 0.005 TON\n📊 Daily limit: 50 ads\n⏰ After limit → wait until 00:00 UTC\n💸 Min withdraw: 0.15 TON (fee 0.01 TON)\n\n⚠️ Rules: Mobile data only, no VPN.\n✅ Join @TonexaAdsBot`
+        };
+
+        // ============ STATE ============
+        let state = {
+            totalEarning: 0,
+            adCount: 0,
+            adsWatchedToday: 0,
+            cooldownUntil: null,
+            weeklyActivity: [0,0,0,0,0,0,0],
+            level: 1,
+            xp: 0,
+            withdrawalHistory: [],
+            rewardedReferrals: 0,
+            completedEvents: [],
+            completedBonusTasks: []
+        };
+
+        let cooldownInterval, chart, eventTimers = [];
+
+        // ============ API YARDIMCILARI ============
+        async function api(endpoint, method='GET', body=null) {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : null
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Request failed');
+            }
+            return res.json();
+        }
+
+        // ============ LEVEL YÜZDESİ ============
+        function getLevelPercent() {
+            const lvl = Math.min(state.level, 15);
+            if (lvl === 15) return 100;
+            const curXP = CONFIG.LEVEL_XP[lvl-1] || 0;
+            const nextXP = CONFIG.LEVEL_XP[lvl] || CONFIG.LEVEL_XP[14];
+            return Math.min(100, Math.floor(((state.xp - curXP) / (nextXP - curXP)) * 100));
+        }
+
+        // ============ UI GÜNCELLEME ============
+        function updateUI() {
+            document.getElementById('total-earning').textContent = `${state.totalEarning.toFixed(3)} TON`;
+            document.getElementById('ad-count').textContent = state.adCount;
+            document.getElementById('ads-today-count').textContent = `${state.adsWatchedToday} / 50`;
+            document.getElementById('referral-count').textContent = state.rewardedReferrals || 0;
+            document.getElementById('level-badge').textContent = `Level ${state.level} · ${getLevelPercent()}%`;
+            document.getElementById('min-withdraw-text').textContent = 'Min withdrawal: 0.15 TON (fee 0.01 TON)';
+
+            const btn = document.getElementById('watch-ad-button');
+            const now = Date.now();
+            if (state.cooldownUntil && now < state.cooldownUntil) {
+                btn.disabled = true;
+                const diff = state.cooldownUntil - now;
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                btn.querySelector('span').textContent = `Wait ${h}h ${m}m ${s}s`;
+            } else if (state.adsWatchedToday >= 50) {
+                btn.disabled = true;
+                btn.querySelector('span').textContent = 'Daily limit reached';
+            } else {
+                btn.disabled = false;
+                const reward = CONFIG.LEVEL_REWARDS[Math.min(state.level, 15) - 1];
+                btn.querySelector('span').textContent = `Watch Ad (${reward.toFixed(3)} TON)`;
+            }
+            btn.classList.toggle('pulsing', !btn.disabled);
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('activityChart')?.getContext('2d');
+            if (!ctx) return;
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                    datasets: [{
+                        label: 'Ads',
+                        data: state.weeklyActivity,
+                        backgroundColor: 'rgba(10,132,255,0.2)',
+                        borderColor: '#0A84FF',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 5, color: '#F5F5F7' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#F5F5F7' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ============ ETKİNLİKLER ============
+        async function loadEvents() {
+            const container = document.getElementById('events-container');
+            try {
+                const events = await api('/api/events');
+                container.innerHTML = '';
+                eventTimers.forEach(clearInterval);
+                if (!events.length) return;
+                events.forEach(event => {
+                    const card = document.createElement('div');
+                    card.className = 'event-card';
+                    card.innerHTML = `
+                        <img class="event-img" src="${event.image || 'https://via.placeholder.com/400x140?text=Event'}" alt="${event.title}">
+                        <div class="event-info">
+                            <div class="event-countdown" id="timer-${event.id}"></div>
+                            <div class="event-reward">🎁 ${event.reward} TON</div>
+                            <button class="action-button" id="claim-${event.id}" ${state.completedEvents.includes(event.id) ? 'disabled' : ''}>
+                                ${state.completedEvents.includes(event.id) ? '✔️ Claimed' : 'Claim Reward'}
+                            </button>
+                        </div>`;
+                    container.appendChild(card);
+
+                    const updateTimer = () => {
+                        const remaining = event.endTime - Date.now();
+                        const el = document.getElementById(`timer-${event.id}`);
+                        if (!el) return;
+                        if (remaining <= 0) {
+                            el.textContent = '⏰ Event ended';
+                            const btn = document.getElementById(`claim-${event.id}`);
+                            if (btn) btn.disabled = true;
+                            return;
+                        }
+                        const h = Math.floor(remaining / 3600000);
+                        const m = Math.floor((remaining % 3600000) / 60000);
+                        const s = Math.floor((remaining % 60000) / 1000);
+                        el.textContent = `⏳ Ends in ${h}h ${m}m ${s}s`;
+                    };
+                    updateTimer();
+                    eventTimers.push(setInterval(updateTimer, 1000));
+
+                    const claimBtn = document.getElementById(`claim-${event.id}`);
+                    if (claimBtn && !state.completedEvents.includes(event.id)) {
+                        claimBtn.addEventListener('click', async () => {
+                            try {
+                                const res = await api(`/api/user/${userId}/claimEvent`, 'POST', { eventId: event.id });
+                                state.totalEarning = res.newTotal;
+                                state.completedEvents.push(event.id);
+                                updateUI();
+                                claimBtn.textContent = '✔️ Claimed';
+                                claimBtn.disabled = true;
+                                alert(`✅ +${res.reward} TON`);
+                            } catch(e) { alert(e.message); }
+                        });
+                    }
+                });
+            } catch(e) { console.error('Events error', e); }
+        }
+
+        // ============ BONUS GÖREVLER ============
+        async function loadBonusTasks() {
+            const container = document.getElementById('bonus-tasks-list');
+            container.innerHTML = 'Loading...';
+            try {
+                const tasks = await api('/api/bonusTasks');
+                if (!tasks.length) {
+                    container.innerHTML = '<p style="text-align:center">No bonus tasks.</p>';
+                    return;
+                }
+                container.innerHTML = tasks.map(task => {
+                    const completed = state.completedBonusTasks.includes(task.id);
+                    return `
+                        <div class="bonus-item">
+                            <div class="details">
+                                <span class="title">${task.title}</span>
+                                <span class="reward">+ ${task.reward} TON</span>
+                            </div>
+                            <button class="claim-button" data-id="${task.id}" data-link="${task.link}" data-reward="${task.reward}" ${completed ? 'disabled' : ''}>${completed ? 'Done' : 'Claim'}</button>
+                        </div>`;
+                }).join('');
+
+                document.querySelectorAll('.claim-button:not([disabled])').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = btn.dataset.id;
+                        const link = btn.dataset.link;
+                        const reward = parseFloat(btn.dataset.reward);
+                        btn.disabled = true;
+                        btn.textContent = 'Processing...';
+                        tg?.openLink(link);
+                        setTimeout(() => {
+                            if (!state.completedBonusTasks.includes(id)) {
+                                state.completedBonusTasks.push(id);
+                                state.totalEarning += reward;
+                                updateUI();
+                                loadBonusTasks();
+                                alert(`+${reward} TON bonus!`);
+                            }
+                        }, 5000);
+                    });
+                });
+            } catch(e) {
+                container.innerHTML = '<p style="text-align:center">Error loading tasks.</p>';
+            }
+        }
+
+        // ============ REKLAM İZLEME ============
+        async function watchAd() {
+            const overlay = document.getElementById('ad-loader-overlay');
+            overlay.style.display = 'flex';
+            try {
+                // Monetag SDK (kendi zone ID'nizi girin)
+                if (typeof window.show_12345 === 'function') await window.show_12345();
+                const res = await api(`/api/user/${userId}/watchAd`, 'POST');
+                state.totalEarning = res.newTotal;
+                state.adCount++;
+                state.adsWatchedToday = res.adsWatchedToday;
+                state.level = res.newLevel;
+                state.xp = res.xp;
+                state.cooldownUntil = res.cooldownUntil;
+                updateUI();
+                clearInterval(cooldownInterval);
+                if (state.cooldownUntil && Date.now() < state.cooldownUntil) {
+                    cooldownInterval = setInterval(async () => {
+                        if (Date.now() >= state.cooldownUntil) {
+                            clearInterval(cooldownInterval);
+                            const updated = await api(`/api/user/${userId}`);
+                            state = updated;
+                            updateUI();
+                        } else updateUI();
+                    }, 1000);
+                }
+                alert(`✅ +${res.reward.toFixed(3)} TON`);
+                tg?.HapticFeedback?.notificationOccurred('success');
+            } catch(e) { alert(e.message); }
+            finally { overlay.style.display = 'none'; }
+        }
+
+        // ============ ÇEKİM ============
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const wallet = document.getElementById('account-number').value;
+            const btn = document.getElementById('withdraw-submit-button');
+            btn.querySelector('.button-text').style.display = 'none';
+            btn.querySelector('.spinner').style.display = 'block';
+            btn.disabled = true;
+            try {
+                const res = await api(`/api/user/${userId}/withdraw`, 'POST', { amount, walletAddress: wallet });
+                alert(res.message);
+                const user = await api(`/api/user/${userId}`);
+                state = user;
+                updateUI();
+                closeModal('withdrawModal');
+                document.getElementById('withdraw-form').reset();
+            } catch(e) { alert(e.message); }
+            finally {
+                btn.querySelector('.button-text').style.display = 'inline';
+                btn.querySelector('.spinner').style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+
+        // ============ GEÇMİŞ ============
+        async function loadHistory() {
+            const history = await api(`/api/user/${userId}/history`);
+            const container = document.getElementById('history-list');
+            container.innerHTML = history.length ? history.map(h => `
+                <div class="history-item">
+                    <div class="history-details">
+                        <span class="method-number">TON: ${h.number}</span>
+                        <span class="date">${new Date(h.date).toLocaleString()}</span>
+                    </div>
+                    <div class="history-amount">
+                        <span>${h.amount} TON</span>
+                        <div class="history-status ${h.status.toLowerCase()}">${h.status}</div>
+                    </div>
+                </div>`).join('') : '<p class="no-history">No history.</p>';
+        }
+
+        // ============ MODAL ============
+        function showModal(id, btn) {
+            document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            if (id === 'historyModal') loadHistory();
+            if (id === 'bonusTasksModal') loadBonusTasks();
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
+        }
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModal(e.target.id); };
+
+        // ============ DİĞER BUTONLAR ============
+        document.getElementById('join-channel-button').onclick = () => tg?.openTelegramLink(CONFIG.CHANNEL_LINK);
+        document.getElementById('admin-contact-button').onclick = () => tg?.openTelegramLink(`https://t.me/${CONFIG.ADMIN_USERNAME}`);
+        document.getElementById('copy-link-button').onclick = () => {
+            const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
+            navigator.clipboard.writeText(link).then(() => alert('Referral link copied!'));
+        };
+        document.getElementById('share-link-button').onclick = () => {
+            const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
+            tg?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Earn TON with @TonexaAdsBot!`);
+        };
+
+        // ============ BAŞLAT ============
+        (async function init() {
+            // Preloader
+            let p = 0;
+            const intv = setInterval(() => {
+                p += Math.floor(Math.random() * 5) + 1;
+                if (p > 100) p = 100;
+                document.getElementById('preloader-percentage').textContent = `${p}%`;
+                if (p >= 100) {
+                    clearInterval(intv);
+                    document.getElementById('preloader').style.opacity = '0';
+                    document.getElementById('preloader-footer').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('preloader').style.display = 'none';
+                        document.getElementById('preloader-footer').style.display = 'none';
+                        document.querySelector('.container').style.display = 'block';
+                    }, 500);
+                }
+            }, 60);
+
+            try {
+                const user = await api(`/api/user/${userId}`);
+                state = user;
+                updateUI();
+                loadEvents();
+
+                // Cooldown sayaç
+                if (state.cooldownUntil && Date.now() < state.cooldownUntil) {
+                    cooldownInterval = setInterval(async () => {
+                        if (Date.now() >= state.cooldownUntil) {
+                            clearInterval(cooldownInterval);
+                            const updated = await api(`/api/user/${userId}`);
+                            state = updated;
+                            updateUI();
+                        } else updateUI();
+                    }, 1000);
+                }
+
+                // Referans işle
+                const startParam = tg?.initDataUnsafe?.start_param;
+                if (startParam && !isNaN(startParam) && startParam !== userId.toString()) {
+                    await api(`/api/user/${userId}/referral`, 'POST', { referrerId: parseInt(startParam) });
+                }
+
+                document.getElementById('watch-ad-button').addEventListener('click', watchAd);
+
+                // Welcome
+                if (!sessionStorage.getItem('welcomeShown')) {
+                    document.getElementById('welcome-title').textContent = '🎉 Welcome!';
+                    document.getElementById('welcome-message').textContent = CONFIG.WELCOME_MSG;
+                    showModal('welcomeModal');
+                    sessionStorage.setItem('welcomeShown', '1');
+                }
+
+                // Profil
+                const tgUser = tg?.initDataUnsafe?.user;
+                if (tgUser?.first_name) {
+                    document.getElementById('greeting').textContent = `Welcome, ${tgUser.first_name}!`;
+                    const pic = document.getElementById('profile-pic');
+                    pic.innerHTML = tgUser.photo_url ? `<img src="${tgUser.photo_url}" alt="P">` : tgUser.first_name.charAt(0);
+                }
+
+                tg?.ready();
+                tg?.expand();
+            } catch(e) { alert('App start error: ' + e.message); }
+        })();
+    </script>
+</body>
+</html>
