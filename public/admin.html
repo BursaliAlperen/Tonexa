@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonexa Admin Panel</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #171a21;
+      --text: #eef1f7;
+      --muted: #9ca5b8;
+      --line: #2d3342;
+      --primary: #3a86ff;
+      --danger: #d9534f;
+    }
+    [data-theme="light"] {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #1b2130;
+      --muted: #5d6677;
+      --line: #dde3ef;
+      --primary: #0a61ff;
+      --danger: #c53030;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    h1, h2 { margin: 0 0 10px; }
+    .row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      padding: 10px;
+      font-size: 14px;
+    }
+    textarea { min-height: 75px; }
+    button { background: var(--primary); color: #fff; border: none; font-weight: 700; cursor: pointer; }
+    .btn-secondary { background: transparent; border: 1px solid var(--line); color: var(--text); }
+    .btn-danger { background: var(--danger); }
+    .top { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 8px; text-align: left; white-space: nowrap; }
+    .event-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-top: 8px; display: grid; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <h1 style="flex:1">Tonexa Admin Panel</h1>
+        <button id="theme-toggle" class="btn-secondary" style="max-width:220px">🌙/☀️ Light - Dark Değiştir</button>
+      </div>
+      <div class="row">
+        <input id="admin-id" placeholder="Admin ID (Telegram user id)" />
+        <button id="save-admin">Admin ID Kaydet</button>
+      </div>
+      <p class="hint">Not: Bu panel backend'deki <code>ADMIN_IDS</code> kontrolü ile korunur.</p>
+    </div>
+
+    <div class="card">
+      <h2>Gerçek Çekim Geçmişi</h2>
+      <button id="reload-withdrawals">Yenile</button>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead>
+            <tr><th>Tarih</th><th>Kullanıcı</th><th>Wallet</th><th>Miktar</th><th>Durum</th></tr>
+          </thead>
+          <tbody id="withdrawal-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Etkinlik Yönetimi (Farklı Türler)</h2>
+      <div class="row">
+        <input id="event-title" placeholder="Etkinlik başlığı" />
+        <select id="event-type">
+          <option value="one_time">Tek Seferlik</option>
+          <option value="daily_referral_goal">Günlük Referans Hedefi</option>
+          <option value="daily_watch_goal">Günlük Reklam Hedefi</option>
+        </select>
+        <input id="event-reward" type="number" step="0.001" value="0.01" placeholder="Ödül (TON)" />
+      </div>
+      <div class="row">
+        <input id="event-image" placeholder="Görsel URL (opsiyonel)" />
+        <input id="event-start-hour" type="number" value="0" min="0" max="23" placeholder="Start Hour UTC" />
+        <input id="event-duration" type="number" value="24" min="1" max="48" placeholder="Süre (saat)" />
+      </div>
+      <div class="row">
+        <input id="event-required-ref" type="number" value="1" placeholder="Gerekli davet (referans etkinliği)" />
+        <input id="event-required-ads" type="number" value="5" placeholder="Gerekli reklam (izleme etkinliği)" />
+        <input id="event-end-time" type="datetime-local" placeholder="Tek seferlik için bitiş" />
+      </div>
+      <textarea id="event-referral-message" placeholder="Özel referans mesajı (örn: Davet et kazan: 1 davet = 0.01, 5 davet = 0.05)"></textarea>
+      <div class="row">
+        <button id="create-event">Etkinlik Kaydet</button>
+        <button id="reload-events" class="btn-secondary">Etkinlikleri Yenile</button>
+      </div>
+      <div id="event-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    const savedTheme = localStorage.getItem('adminTheme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    const adminInput = document.getElementById('admin-id');
+    const tgAdminId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : '';
+    adminInput.value = localStorage.getItem('adminId') || tgAdminId || '';
+
+    const getAdminId = () => (localStorage.getItem('adminId') || '').trim();
+
+    async function adminApi(path, method = 'GET', body = null) {
+      const adminId = getAdminId();
+      if (!adminId) {
+        alert('Önce admin ID kaydet.');
+        throw new Error('admin id required');
+      }
+
+      const res = await fetch(path, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId
+        },
+        body: body ? JSON.stringify(body) : null
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Hata');
+      return data;
+    }
+
+    async function checkAdminAccess() {
+      const adminId = getAdminId();
+      if (!adminId) return false;
+      const res = await fetch(`/api/admin/check?adminId=${encodeURIComponent(adminId)}`);
+      const data = await res.json();
+      return !!data.isAdmin;
+    }
+
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString('tr-TR'); }
+      catch { return iso || '-'; }
+    }
+
+    async function loadWithdrawals() {
+      const tbody = document.getElementById('withdrawal-body');
+      tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
+      try {
+        const rows = await adminApi('/api/admin/withdrawals');
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="5">Çekim kaydı yok.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = rows.map(row => `
+          <tr>
+            <td>${fmtDate(row.date)}</td>
+            <td>${row.firstName || '-'} (${row.userId})</td>
+            <td>${row.number || '-'}</td>
+            <td>${Number(row.amount || 0).toFixed(3)} TON</td>
+            <td>${row.status || 'Pending'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5">Hata: ${err.message}</td></tr>`;
+      }
+    }
+
+    function readEventPayload() {
+      const type = document.getElementById('event-type').value;
+      const endInput = document.getElementById('event-end-time').value;
+      return {
+        title: document.getElementById('event-title').value.trim(),
+        type,
+        reward: Number(document.getElementById('event-reward').value || 0),
+        image: document.getElementById('event-image').value.trim(),
+        startHourUTC: Number(document.getElementById('event-start-hour').value || 0),
+        durationHours: Number(document.getElementById('event-duration').value || 24),
+        requiredReferrals: Number(document.getElementById('event-required-ref').value || 0),
+        requiredAds: Number(document.getElementById('event-required-ads').value || 0),
+        referralMessage: document.getElementById('event-referral-message').value.trim(),
+        endTime: endInput ? new Date(endInput).getTime() : undefined
+      };
+    }
+
+    async function loadEvents() {
+      const container = document.getElementById('event-list');
+      container.innerHTML = 'Yükleniyor...';
+      try {
+        const events = await adminApi('/api/admin/events');
+        if (!events.length) {
+          container.innerHTML = '<p class="hint">Etkinlik yok.</p>';
+          return;
+        }
+        container.innerHTML = events.map(ev => `
+          <div class="event-item">
+            <b>${ev.title}</b>
+            <span class="hint">Tip: ${ev.type} | Ödül: ${ev.reward} TON</span>
+            <span class="hint">${ev.referralMessage || '-'}</span>
+            <div class="row">
+              <button class="btn-secondary" onclick="fillEvent('${ev.id}')">Düzenle</button>
+              <button class="btn-danger" onclick="deleteEvent('${ev.id}')">Sil</button>
+            </div>
+          </div>
+        `).join('');
+        window._adminEvents = events;
+      } catch (err) {
+        container.innerHTML = `<p>Hata: ${err.message}</p>`;
+      }
+    }
+
+    window.fillEvent = function(id) {
+      const ev = (window._adminEvents || []).find(x => x.id === id);
+      if (!ev) return;
+      document.getElementById('event-title').value = ev.title || '';
+      document.getElementById('event-type').value = ev.type || 'one_time';
+      document.getElementById('event-reward').value = ev.reward || 0;
+      document.getElementById('event-image').value = ev.image || '';
+      document.getElementById('event-start-hour').value = ev.startHourUTC || 0;
+      document.getElementById('event-duration').value = ev.durationHours || 24;
+      document.getElementById('event-required-ref').value = ev.requiredReferrals || 0;
+      document.getElementById('event-required-ads').value = ev.requiredAds || 0;
+      document.getElementById('event-referral-message').value = ev.referralMessage || '';
+      if (ev.endTime) {
+        const dt = new Date(ev.endTime);
+        const pad = n => String(n).padStart(2, '0');
+        document.getElementById('event-end-time').value = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+      }
+      document.getElementById('create-event').dataset.eventId = ev.id;
+      document.getElementById('create-event').textContent = 'Etkinliği Güncelle';
+    };
+
+    window.deleteEvent = async function(id) {
+      if (!confirm('Etkinlik silinsin mi?')) return;
+      try {
+        await adminApi(`/api/admin/events/${id}`, 'DELETE');
+        await loadEvents();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    document.getElementById('theme-toggle').onclick = () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', cur);
+      localStorage.setItem('adminTheme', cur);
+    };
+
+    document.getElementById('save-admin').onclick = () => {
+      const val = adminInput.value.trim();
+      localStorage.setItem('adminId', val);
+      alert('Admin ID kaydedildi.');
+    };
+
+    document.getElementById('reload-withdrawals').onclick = loadWithdrawals;
+    document.getElementById('reload-events').onclick = loadEvents;
+
+    document.getElementById('create-event').onclick = async (e) => {
+      const payload = readEventPayload();
+      const eventId = e.currentTarget.dataset.eventId;
+      if (eventId) payload.eventId = eventId;
+
+      try {
+        await adminApi('/api/admin/events', 'POST', payload);
+        e.currentTarget.dataset.eventId = '';
+        e.currentTarget.textContent = 'Etkinlik Kaydet';
+        await loadEvents();
+        alert('Etkinlik kaydedildi.');
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    (async () => {
+      const ok = await checkAdminAccess().catch(() => false);
+      if (!ok) {
+        document.body.innerHTML = '<div style=\"padding:24px;font-family:Arial;color:#fff;background:#111;min-height:100vh;\">⛔ Admin yetkisi yok. Bu sayfa yalnızca admin kullanıcılar içindir.</div>';
+        return;
+      }
+      loadWithdrawals();
+      loadEvents();
+    })();
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <title>@TonexaAdsBot – TON Kazan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>(function(){ document.documentElement.setAttribute('data-theme','dark'); })();</script>
     <style>
@@ -128,11 +129,11 @@
 
     <!-- NAV -->
     <div class="nav-bar">
-        <button class="nav-button" onclick="showModal('withdrawModal',this)"><i class="fa-solid fa-money-bill-transfer"></i><span>Çekim</span></button>
+        <button class="nav-button" id="nav-withdraw-button"><i class="fa-solid fa-money-bill-transfer"></i><span>Çekim</span></button>
         <button class="nav-button" onclick="showModal('historyModal',this)"><i class="fa-solid fa-clock-rotate-left"></i><span>Geçmiş</span></button>
-        <button class="nav-button" onclick="showModal('inviteModal',this)"><i class="fa-solid fa-user-plus"></i><span>Davet</span></button>
+        <button class="nav-button" id="nav-referral-button"><i class="fa-solid fa-user-plus"></i><span>Davet</span></button>
         <button class="nav-button" onclick="showModal('supportModal',this)"><i class="fa-solid fa-headset"></i><span>Destek</span></button>
-        <button class="nav-button" onclick="showModal('bonusTasksModal',this)"><i class="fa-solid fa-star"></i><span>Bonus</span></button>
+        <button class="nav-button" id="nav-task-button"><i class="fa-solid fa-star"></i><span>Bonus</span></button>
     </div>
 
     <!-- MODALLAR -->
@@ -160,6 +161,8 @@
             <h3 class="card-title">Destek</h3>
             <p>Admin: <b>@AlperenTHE</b></p>
             <button class="action-button" id="admin-contact-button"><i class="fa-brands fa-telegram"></i><span>Admin ile İletişim</span></button>
+            <button class="action-button secondary-button" id="admin-panel-button" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin Panel</span></button>
+            <button class="action-button secondary-button" id="tonexa-bot-start-button"><i class="fa-solid fa-rocket"></i><span>TonexaBot Başlat</span></button>
         </div>
     </div>
 
@@ -204,19 +207,10 @@
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         const userId = tg?.initDataUnsafe?.user?.id || 'testuser';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD9FLQ3tMgCacphTCuRmjct5ChYTxM41y4",
-            authDomain: "tonexa-ads.firebaseapp.com",
-            projectId: "tonexa-ads",
-            storageBucket: "tonexa-ads.firebasestorage.app",
-            messagingSenderId: "469411381675",
-            appId: "1:469411381675:web:b5924cce5d4a541797d2ee"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const firestoreDB = firebase.firestore();
-
         const CONFIG = {
             BOT_USERNAME: 'TonexaAdsBot',
+            TONEXA_BOT_URL: 'https://tonexa.onrender.com/',
+            ADMIN_PAGE_URL: '/admin.html',
             CHANNEL_LINK: 'https://t.me/BasicTouchPro',
             ADMIN_USERNAME: 'AlperenTHE',
             LEVEL_XP: [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800, 4700, 5700, 6800, 8000, 9300],
@@ -225,7 +219,7 @@
                 0.003070, 0.003284, 0.003498, 0.003712, 0.003926,
                 0.004140, 0.004354, 0.004568, 0.004782, 0.005
             ],
-            WELCOME_MSG: `TON kazanmak için reklam izleyin!\n\n💎 Seviye 1: 0.002 TON\n📈 Maks Seviye 15: 0.005 TON\n🎯 Günlük limit: 50 reklam\n⏰ Limit dolunca gece yarısına kadar bekleme\n💸 Min Çekim: 0.15 TON (Ücret 0.01 TON)\n\n⚠️ Kurallar:\n- Sadece mobil veri kullan\n- VPN kullanma\n- Aradan sonra IP değiştir`
+            WELCOME_MSG: `🚀 TONEXA'ya Hoş Geldin!\n\n💎 Seviye 1: 0.002 TON\n🏆 Maks Seviye 15: 0.005 TON\n🎯 Günlük limit: 50 reklam\n⏰ Limit dolunca gece yarısı (UTC) sıfırlanır\n💸 Min Çekim: 0.15 TON (Ücret 0.01 TON)\n\n🛡️ Kurallar:\n📶 Sadece mobil veri kullan\n🚫 VPN kullanma\n🔄 Aradan sonra IP değiştirme`
         };
 
         let state = {
@@ -268,7 +262,7 @@
                 btn.disabled = true;
                 const diff = state.cooldownUntil - now;
                 const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-                btn.querySelector('span').textContent = `Bekle ${h}s ${m}d ${s}s`;
+                btn.querySelector('span').textContent = `Bekle ${h}sa ${m}dk ${s}sn`;
             } else if (state.adsWatchedToday >= 50) {
                 btn.disabled = true; btn.querySelector('span').textContent = 'Günlük limit doldu';
             } else {
@@ -299,19 +293,23 @@
         async function loadEvents() {
             const container = document.getElementById('events-container');
             try {
-                const events = await api('/api/events');
+                const events = await api(`/api/events?userId=${encodeURIComponent(userId)}`);
                 container.innerHTML = '';
                 eventTimers.forEach(clearInterval);
                 if (!events.length) return;
                 events.forEach(event => {
+                    const isCompleted = state.completedEvents.includes(event.eventKey || event.id);
+                    const isClaimable = !!event.claimable && !isCompleted;
                     const card = document.createElement('div');
                     card.className = 'event-card';
                     card.innerHTML = `
                         <img class="event-img" src="${event.image || 'https://via.placeholder.com/400x140?text=Etkinlik'}" alt="${event.title}">
                         <div class="event-info">
                             <div class="event-countdown" id="timer-${event.id}"></div>
+                            ${event.progressText ? `<div class="event-countdown">${event.progressText}</div>` : ''}
+                            ${event.referralMessage ? `<div class="event-countdown">📣 ${event.referralMessage}</div>` : ''}
                             <div class="event-reward">🎁 ${event.reward} TON</div>
-                            <button class="action-button" id="claim-${event.id}" ${state.completedEvents.includes(event.id) ? 'disabled' : ''}>${state.completedEvents.includes(event.id) ? '✔️ Alındı' : 'Ödülü Al'}</button>
+                            <button class="action-button" id="claim-${event.id}" ${isClaimable ? '' : 'disabled'}>${isCompleted ? '✔️ Alındı' : (isClaimable ? 'Ödülü Al' : 'Şartları Tamamla')}</button>
                         </div>`;
                     container.appendChild(card);
 
@@ -321,18 +319,18 @@
                         if (!el) return;
                         if (remaining <= 0) { el.textContent = '⏰ Etkinlik bitti'; const btn = document.getElementById(`claim-${event.id}`); if (btn) btn.disabled = true; return; }
                         const h = Math.floor(remaining/3600000), m = Math.floor((remaining%3600000)/60000), s = Math.floor((remaining%60000)/1000);
-                        el.textContent = `⏳ ${h}s ${m}d ${s}s kaldı`;
+                        el.textContent = `⏳ ${h}sa ${m}dk ${s}sn kaldı`;
                     };
                     updateTimer();
                     eventTimers.push(setInterval(updateTimer, 1000));
 
                     const claimBtn = document.getElementById(`claim-${event.id}`);
-                    if (claimBtn && !state.completedEvents.includes(event.id)) {
+                    if (claimBtn && !isCompleted) {
                         claimBtn.addEventListener('click', async () => {
                             try {
                                 const res = await api(`/api/user/${userId}/claimEvent`, 'POST', { eventId: event.id });
                                 state.totalEarning = res.newTotal;
-                                state.completedEvents.push(event.id);
+                                state.completedEvents.push(event.eventKey || event.id);
                                 updateUI();
                                 claimBtn.textContent = '✔️ Alındı';
                                 claimBtn.disabled = true;
@@ -380,6 +378,9 @@
             const overlay = document.getElementById('ad-loader-overlay');
             overlay.style.display = 'flex';
             try {
+                if (window.TelegramAdsController && typeof window.TelegramAdsController.showAd === 'function') {
+                    await window.TelegramAdsController.showAd();
+                }
                 if (typeof window.show_12345 === 'function') await window.show_12345();
                 const res = await api(`/api/user/${userId}/watchAd`, 'POST');
                 state.totalEarning = res.newTotal;
@@ -454,7 +455,12 @@
         window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModal(e.target.id); };
 
         document.getElementById('join-channel-button').onclick = () => tg?.openTelegramLink(CONFIG.CHANNEL_LINK);
+        document.getElementById('nav-withdraw-button').onclick = () => tg?.openLink(`/withdraw.html?userId=${userId}`) || window.open(`/withdraw.html?userId=${userId}`, '_blank');
+        document.getElementById('nav-referral-button').onclick = () => tg?.openLink(`/referrals.html?userId=${userId}`) || window.open(`/referrals.html?userId=${userId}`, '_blank');
+        document.getElementById('nav-task-button').onclick = () => tg?.openLink(`/tasks.html?userId=${userId}`) || window.open(`/tasks.html?userId=${userId}`, '_blank');
         document.getElementById('admin-contact-button').onclick = () => tg?.openTelegramLink(`https://t.me/${CONFIG.ADMIN_USERNAME}`);
+        document.getElementById('admin-panel-button').onclick = () => tg?.openLink(CONFIG.ADMIN_PAGE_URL) || window.open(CONFIG.ADMIN_PAGE_URL, '_blank');
+        document.getElementById('tonexa-bot-start-button').onclick = () => tg?.openLink(CONFIG.TONEXA_BOT_URL) || window.open(CONFIG.TONEXA_BOT_URL, '_blank');
         document.getElementById('copy-link-button').onclick = () => {
             const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
             navigator.clipboard.writeText(link).then(() => alert('Bağlantı kopyalandı!'));
@@ -465,6 +471,14 @@
         };
 
         (async function init() {
+            if (typeof TelegramAdsController === 'function') {
+                try {
+                    window.TelegramAdsController = new TelegramAdsController();
+                    window.TelegramAdsController.initialize({ pubId: '988708', appId: '7255' });
+                } catch (e) {
+                    console.warn('RichAds init başarısız:', e.message);
+                }
+            }
             let p=0;
             const intv=setInterval(()=>{
                 p+=Math.floor(Math.random()*5)+1; if(p>100)p=100;
@@ -496,6 +510,12 @@
                 state = user;
                 updateUI();
                 loadEvents();
+                try {
+                    const adminCheck = await api(`/api/admin/check?adminId=${encodeURIComponent(userId)}`);
+                    document.getElementById('admin-panel-button').style.display = adminCheck.isAdmin ? 'flex' : 'none';
+                } catch (e) {
+                    document.getElementById('admin-panel-button').style.display = 'none';
+                }
 
                 if (state.cooldownUntil && Date.now() < state.cooldownUntil) {
                     cooldownInterval = setInterval(async () => {
