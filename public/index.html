@@ -204,17 +204,6 @@
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         const userId = tg?.initDataUnsafe?.user?.id || 'testuser';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD9FLQ3tMgCacphTCuRmjct5ChYTxM41y4",
-            authDomain: "tonexa-ads.firebaseapp.com",
-            projectId: "tonexa-ads",
-            storageBucket: "tonexa-ads.firebasestorage.app",
-            messagingSenderId: "469411381675",
-            appId: "1:469411381675:web:b5924cce5d4a541797d2ee"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const firestoreDB = firebase.firestore();
-
         const CONFIG = {
             BOT_USERNAME: 'TonexaAdsBot',
             CHANNEL_LINK: 'https://t.me/BasicTouchPro',
@@ -268,7 +257,7 @@
                 btn.disabled = true;
                 const diff = state.cooldownUntil - now;
                 const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-                btn.querySelector('span').textContent = `Bekle ${h}s ${m}d ${s}s`;
+                btn.querySelector('span').textContent = `Bekle ${h}sa ${m}dk ${s}sn`;
             } else if (state.adsWatchedToday >= 50) {
                 btn.disabled = true; btn.querySelector('span').textContent = 'Günlük limit doldu';
             } else {
@@ -321,7 +310,7 @@
                         if (!el) return;
                         if (remaining <= 0) { el.textContent = '⏰ Etkinlik bitti'; const btn = document.getElementById(`claim-${event.id}`); if (btn) btn.disabled = true; return; }
                         const h = Math.floor(remaining/3600000), m = Math.floor((remaining%3600000)/60000), s = Math.floor((remaining%60000)/1000);
-                        el.textContent = `⏳ ${h}s ${m}d ${s}s kaldı`;
+                        el.textContent = `⏳ ${h}sa ${m}dk ${s}sn kaldı`;
                     };
                     updateTimer();
                     eventTimers.push(setInterval(updateTimer, 1000));

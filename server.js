@@ -38,7 +38,10 @@ const CONFIG = {
     WITHDRAWAL_FEE: 0.01,
     REFERRAL_REWARD: 0.01,
     BOT_TOKEN: process.env.BOT_TOKEN,
-    ADMIN_IDS: process.env.ADMIN_IDS.split(',').map(Number)
+    ADMIN_IDS: (process.env.ADMIN_IDS || '')
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(Number.isFinite)
 };
 
 function getMidnightUTC() {
