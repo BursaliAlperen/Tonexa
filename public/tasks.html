@@ -1,0 +1,9 @@
+<!DOCTYPE html><html lang='tr'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Task Paneli</title><style>body{font-family:Arial;background:#0f1115;color:#fff;margin:0;padding:16px}.card{background:#191d26;border:1px solid #2c3340;border-radius:12px;padding:14px;margin-bottom:12px}.task{border:1px solid #2c3340;border-radius:10px;padding:10px;margin-top:8px}button{padding:10px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:700}</style></head><body>
+<div class='card'><h2>⭐ Task Merkezi</h2><p>Bonus görevler ve etkinlikler tek sayfada.</p></div>
+<div class='card'><h3>Bonus Görevler</h3><div id='bonus'></div></div>
+<div class='card'><h3>Aktif Etkinlikler</h3><div id='events'></div></div>
+<script>
+const userId=new URLSearchParams(location.search).get('userId')||'testuser';
+async function load(){const [b,e]=await Promise.all([fetch('/api/bonusTasks').then(r=>r.json()),fetch(`/api/events?userId=${userId}`).then(r=>r.json())]);document.getElementById('bonus').innerHTML=(b||[]).map(t=>`<div class='task'><b>${t.title}</b><p>+${t.reward} TON</p><button onclick="window.open('${t.link}','_blank')">Göreve Git</button></div>`).join('')||'Görev yok';document.getElementById('events').innerHTML=(e||[]).map(t=>`<div class='task'><b>${t.title}</b><p>${t.progressText||''}</p><p>Ödül: ${t.reward} TON</p></div>`).join('')||'Etkinlik yok';}
+load();
+</script></body></html>

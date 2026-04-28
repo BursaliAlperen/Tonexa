@@ -150,6 +150,7 @@ function defaultUser(uid) {
         withdrawalHistory: [],
         completedBonusTasks: [],
         completedEvents: [],
+        referralHistory: [],
         rewardedReferrals: 0,
         level: 1,
         xp: 0,
@@ -351,13 +352,52 @@ app.post('/api/user/:userId/referral', async (req, res) => {
     if (referrerDoc.exists) {
         const referrer = referrerDoc.data();
         const newCount = (referrer.rewardedReferrals || 0) + 1;
+        const newHistory = [
+            {
+                referredUserId: String(userId),
+                reward: CONFIG.REFERRAL_REWARD,
+                date: new Date().toISOString(),
+                active: true
+            },
+            ...(referrer.referralHistory || [])
+        ];
         await referrerRef.update({
             totalEarning: (referrer.totalEarning || 0) + CONFIG.REFERRAL_REWARD,
-            rewardedReferrals: newCount
+            rewardedReferrals: newCount,
+            referralHistory: newHistory
         });
     }
 
     res.json({ success: true, reward: CONFIG.REFERRAL_REWARD });
+});
+
+// Referans geçmişi/istatistik
+app.get('/api/user/:userId/referrals', async (req, res) => {
+    const { userId } = req.params;
+    const range = String(req.query.range || 'all');
+    const now = Date.now();
+    const ranges = {
+        '1h': 60 * 60 * 1000,
+        '1d': 24 * 60 * 60 * 1000,
+        '1m': 30 * 24 * 60 * 60 * 1000,
+        '1y': 365 * 24 * 60 * 60 * 1000
+    };
+
+    const doc = await db.collection('users').doc(userId).get();
+    if (!doc.exists) return res.json({ totalReferrals: 0, totalReward: 0, history: [] });
+    const user = doc.data();
+    const history = user.referralHistory || [];
+
+    const filtered = !ranges[range]
+        ? history
+        : history.filter((h) => (now - new Date(h.date).getTime()) <= ranges[range]);
+
+    const totalReward = filtered.reduce((sum, h) => sum + Number(h.reward || 0), 0);
+    res.json({
+        totalReferrals: filtered.length,
+        totalReward,
+        history: filtered
+    });
 });
 
 // Etkinlikler
