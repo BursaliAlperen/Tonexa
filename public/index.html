@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>@TonexaAdsBot – Earn TON</title>
+    <title>@TonexaAdsBot – TON Kazan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -88,50 +88,50 @@
 
     <div id="ad-loader-overlay">
         <div class="loader"></div>
-        <span>Loading Ad...</span>
+        <span>Reklam Yükleniyor...</span>
     </div>
 
     <div class="container">
         <div class="profile-header">
             <div id="profile-pic"><i class="fa-solid fa-user"></i></div>
-            <h1 id="greeting">Welcome!</h1>
+            <h1 id="greeting">Hoş Geldiniz!</h1>
         </div>
 
         <div class="balance-card">
             <div class="ton-bg-icon">
                 <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="currentColor"/><path d="M7 8h10l-4 8H9l-2-8z" fill="white"/></svg>
             </div>
-            <h3>Your Balance</h3>
+            <h3>Bakiyeniz</h3>
             <div class="amount" id="total-earning">0.000 TON</div>
-            <div class="level-badge" id="level-badge">Level 1 · 0%</div>
+            <div class="level-badge" id="level-badge">Seviye 1 · %0</div>
         </div>
 
         <div id="events-container"></div>
 
         <div class="stats-grid">
-            <div class="stat-item"><i class="fa-solid fa-rectangle-ad bg-icon"></i><div class="icon"><i class="fa-solid fa-rectangle-ad"></i></div><div class="value" id="ad-count">0</div><div class="label">Ads Watched</div></div>
-            <div class="stat-item"><i class="fa-solid fa-calendar-day bg-icon"></i><div class="icon"><i class="fa-solid fa-calendar-day"></i></div><div class="value" id="ads-today-count">0 / 50</div><div class="label">Today's Ads</div></div>
-            <div class="stat-item"><i class="fa-solid fa-users bg-icon"></i><div class="icon"><i class="fa-solid fa-users"></i></div><div class="value" id="referral-count">0</div><div class="label">Referrals</div></div>
+            <div class="stat-item"><i class="fa-solid fa-rectangle-ad bg-icon"></i><div class="icon"><i class="fa-solid fa-rectangle-ad"></i></div><div class="value" id="ad-count">0</div><div class="label">İzlenen Reklam</div></div>
+            <div class="stat-item"><i class="fa-solid fa-calendar-day bg-icon"></i><div class="icon"><i class="fa-solid fa-calendar-day"></i></div><div class="value" id="ads-today-count">0 / 50</div><div class="label">Bugünkü Reklam</div></div>
+            <div class="stat-item"><i class="fa-solid fa-users bg-icon"></i><div class="icon"><i class="fa-solid fa-users"></i></div><div class="value" id="referral-count">0</div><div class="label">Referanslar</div></div>
         </div>
 
         <div class="card">
-            <h3 class="card-title">Today's Task</h3>
-            <button class="action-button" id="watch-ad-button"><i class="fa-solid fa-play"></i><span>Watch Ad</span></button>
-            <button class="action-button secondary-button" id="join-channel-button"><i class="fa-brands fa-telegram"></i><span>Join Channel</span></button>
+            <h3 class="card-title">Günlük Görev</h3>
+            <button class="action-button" id="watch-ad-button"><i class="fa-solid fa-play"></i><span>Reklam İzle</span></button>
+            <button class="action-button secondary-button" id="join-channel-button"><i class="fa-brands fa-telegram"></i><span>Kanala Katıl</span></button>
         </div>
 
         <div class="card">
-            <h3 class="card-title">Weekly Activity</h3>
+            <h3 class="card-title">Haftalık Aktivite</h3>
             <div class="chart-container"><canvas id="activityChart"></canvas></div>
         </div>
     </div>
 
     <!-- NAV -->
     <div class="nav-bar">
-        <button class="nav-button" onclick="showModal('withdrawModal',this)"><i class="fa-solid fa-money-bill-transfer"></i><span>Withdraw</span></button>
-        <button class="nav-button" onclick="showModal('historyModal',this)"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
-        <button class="nav-button" onclick="showModal('inviteModal',this)"><i class="fa-solid fa-user-plus"></i><span>Invite</span></button>
-        <button class="nav-button" onclick="showModal('supportModal',this)"><i class="fa-solid fa-headset"></i><span>Support</span></button>
+        <button class="nav-button" onclick="showModal('withdrawModal',this)"><i class="fa-solid fa-money-bill-transfer"></i><span>Çekim</span></button>
+        <button class="nav-button" onclick="showModal('historyModal',this)"><i class="fa-solid fa-clock-rotate-left"></i><span>Geçmiş</span></button>
+        <button class="nav-button" onclick="showModal('inviteModal',this)"><i class="fa-solid fa-user-plus"></i><span>Davet</span></button>
+        <button class="nav-button" onclick="showModal('supportModal',this)"><i class="fa-solid fa-headset"></i><span>Destek</span></button>
         <button class="nav-button" onclick="showModal('bonusTasksModal',this)"><i class="fa-solid fa-star"></i><span>Bonus</span></button>
     </div>
 
@@ -139,34 +139,34 @@
     <div id="withdrawModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('withdrawModal')">&times;</span>
-            <h3 class="card-title">Withdraw TON</h3>
+            <h3 class="card-title">TON Çek</h3>
             <p id="min-withdraw-text"></p>
             <form id="withdraw-form">
-                <select id="method" required><option value="">Select Payment Method</option><option value="TON Wallet">TON Wallet</option></select>
-                <input type="text" id="account-number" placeholder="Your TON wallet address" required>
-                <input type="number" step="0.001" id="withdraw-amount" placeholder="Amount in TON" required>
+                <select id="method" required><option value="">Ödeme Yöntemi Seçin</option><option value="TON Wallet">TON Cüzdanı</option></select>
+                <input type="text" id="account-number" placeholder="TON cüzdan adresiniz" required>
+                <input type="number" step="0.001" id="withdraw-amount" placeholder="Çekmek istediğiniz TON" required>
                 <button type="submit" class="action-button" id="withdraw-submit-button">
-                    <span class="button-text">Submit Request</span>
+                    <span class="button-text">Talebi Gönder</span>
                     <div class="spinner"></div>
                 </button>
             </form>
-            <p style="text-align:center;font-size:12px;margin-top:10px;">Fee: 0.01 TON</p>
+            <p style="text-align:center;font-size:12px;margin-top:10px;">İşlem Ücreti: 0.01 TON</p>
         </div>
     </div>
 
     <div id="supportModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('supportModal')">&times;</span>
-            <h3 class="card-title">Support</h3>
+            <h3 class="card-title">Destek</h3>
             <p>Admin: <b>@AlperenTHE</b></p>
-            <button class="action-button" id="admin-contact-button"><i class="fa-brands fa-telegram"></i><span>Contact Admin</span></button>
+            <button class="action-button" id="admin-contact-button"><i class="fa-brands fa-telegram"></i><span>Admin ile İletişim</span></button>
         </div>
     </div>
 
     <div id="historyModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('historyModal')">&times;</span>
-            <h3 class="card-title">Withdrawal History</h3>
+            <h3 class="card-title">Çekim Geçmişi</h3>
             <div id="history-list"></div>
         </div>
     </div>
@@ -174,37 +174,36 @@
     <div id="inviteModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('inviteModal')">&times;</span>
-            <h3 class="card-title">Invite Friends</h3>
-            <p>Earn 0.01 TON per referral.</p>
-            <button class="action-button" id="copy-link-button"><i class="fa-solid fa-copy"></i><span>Copy Link</span></button>
-            <button class="action-button secondary-button" id="share-link-button"><i class="fa-solid fa-share-nodes"></i><span>Share Link</span></button>
+            <h3 class="card-title">Arkadaşlarını Davet Et</h3>
+            <p>Her başarılı referans için 0.01 TON kazan.</p>
+            <button class="action-button" id="copy-link-button"><i class="fa-solid fa-copy"></i><span>Bağlantıyı Kopyala</span></button>
+            <button class="action-button secondary-button" id="share-link-button"><i class="fa-solid fa-share-nodes"></i><span>Bağlantıyı Paylaş</span></button>
         </div>
     </div>
 
     <div id="bonusTasksModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal('bonusTasksModal')">&times;</span>
-            <h3 class="card-title">Bonus Tasks</h3>
+            <h3 class="card-title">Bonus Görevler</h3>
             <div id="bonus-tasks-list"></div>
         </div>
     </div>
 
     <div id="welcomeModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="text-align:center;">
             <span class="close-button" onclick="closeModal('welcomeModal')">&times;</span>
             <h3 id="welcome-title" class="card-title"></h3>
-            <p id="welcome-message"></p>
-            <button class="action-button" onclick="closeModal('welcomeModal')">I Understand</button>
+            <p id="welcome-message" style="white-space:pre-line;font-size:15px;margin-bottom:20px;"></p>
+            <button class="action-button" onclick="closeModal('welcomeModal')">Anladım</button>
         </div>
     </div>
 
     <script>
-        // ============ FIREBASE & API AYARLARI ============
-        const API_BASE = ''; // Aynı sunucuda olduğu için göreceli
+        // ============ AYARLAR ============
+        const API_BASE = '';
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         const userId = tg?.initDataUnsafe?.user?.id || 'testuser';
 
-        // Firebase Web Config (istemci – sadece okuma)
         const firebaseConfig = {
             apiKey: "AIzaSyD9FLQ3tMgCacphTCuRmjct5ChYTxM41y4",
             authDomain: "tonexa-ads.firebaseapp.com",
@@ -216,7 +215,6 @@
         firebase.initializeApp(firebaseConfig);
         const firestoreDB = firebase.firestore();
 
-        // ============ CONFIG ============
         const CONFIG = {
             BOT_USERNAME: 'TonexaAdsBot',
             CHANNEL_LINK: 'https://t.me/BasicTouchPro',
@@ -227,74 +225,56 @@
                 0.003070, 0.003284, 0.003498, 0.003712, 0.003926,
                 0.004140, 0.004354, 0.004568, 0.004782, 0.005
             ],
-            WELCOME_MSG: `Earn TON by watching ads!\n💎 Level 1: 0.002 TON → Level 15: 0.005 TON\n📊 Daily limit: 50 ads\n⏰ After limit → wait until 00:00 UTC\n💸 Min withdraw: 0.15 TON (fee 0.01 TON)\n\n⚠️ Rules: Mobile data only, no VPN.\n✅ Join @TonexaAdsBot`
+            WELCOME_MSG: `TON kazanmak için reklam izleyin!\n\n💎 Seviye 1: 0.002 TON\n📈 Maks Seviye 15: 0.005 TON\n🎯 Günlük limit: 50 reklam\n⏰ Limit dolunca gece yarısına kadar bekleme\n💸 Min Çekim: 0.15 TON (Ücret 0.01 TON)\n\n⚠️ Kurallar:\n- Sadece mobil veri kullan\n- VPN kullanma\n- Aradan sonra IP değiştir`
         };
 
-        // ============ STATE ============
         let state = {
-            totalEarning: 0,
-            adCount: 0,
-            adsWatchedToday: 0,
-            cooldownUntil: null,
-            weeklyActivity: [0,0,0,0,0,0,0],
-            level: 1,
-            xp: 0,
-            withdrawalHistory: [],
-            rewardedReferrals: 0,
-            completedEvents: [],
-            completedBonusTasks: []
+            totalEarning: 0, adCount: 0, adsWatchedToday: 0,
+            cooldownUntil: null, weeklyActivity: [0,0,0,0,0,0,0],
+            level: 1, xp: 0, withdrawalHistory: [], rewardedReferrals: 0,
+            completedEvents: [], completedBonusTasks: []
         };
 
         let cooldownInterval, chart, eventTimers = [];
 
-        // ============ API YARDIMCILARI ============
         async function api(endpoint, method='GET', body=null) {
             const res = await fetch(`${API_BASE}${endpoint}`, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
+                method, headers: { 'Content-Type': 'application/json' },
                 body: body ? JSON.stringify(body) : null
             });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.error || 'Request failed');
-            }
+            if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Hata'); }
             return res.json();
         }
 
-        // ============ LEVEL YÜZDESİ ============
         function getLevelPercent() {
             const lvl = Math.min(state.level, 15);
             if (lvl === 15) return 100;
-            const curXP = CONFIG.LEVEL_XP[lvl-1] || 0;
-            const nextXP = CONFIG.LEVEL_XP[lvl] || CONFIG.LEVEL_XP[14];
+            const curXP = CONFIG.LEVEL_XP[lvl-1]||0;
+            const nextXP = CONFIG.LEVEL_XP[lvl]||CONFIG.LEVEL_XP[14];
             return Math.min(100, Math.floor(((state.xp - curXP) / (nextXP - curXP)) * 100));
         }
 
-        // ============ UI GÜNCELLEME ============
         function updateUI() {
             document.getElementById('total-earning').textContent = `${state.totalEarning.toFixed(3)} TON`;
             document.getElementById('ad-count').textContent = state.adCount;
             document.getElementById('ads-today-count').textContent = `${state.adsWatchedToday} / 50`;
             document.getElementById('referral-count').textContent = state.rewardedReferrals || 0;
-            document.getElementById('level-badge').textContent = `Level ${state.level} · ${getLevelPercent()}%`;
-            document.getElementById('min-withdraw-text').textContent = 'Min withdrawal: 0.15 TON (fee 0.01 TON)';
+            document.getElementById('level-badge').textContent = `Seviye ${state.level} · %${getLevelPercent()}`;
+            document.getElementById('min-withdraw-text').textContent = 'Min çekim: 0.15 TON (ücret 0.01 TON)';
 
             const btn = document.getElementById('watch-ad-button');
             const now = Date.now();
             if (state.cooldownUntil && now < state.cooldownUntil) {
                 btn.disabled = true;
                 const diff = state.cooldownUntil - now;
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                btn.querySelector('span').textContent = `Wait ${h}h ${m}m ${s}s`;
+                const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+                btn.querySelector('span').textContent = `Bekle ${h}s ${m}d ${s}s`;
             } else if (state.adsWatchedToday >= 50) {
-                btn.disabled = true;
-                btn.querySelector('span').textContent = 'Daily limit reached';
+                btn.disabled = true; btn.querySelector('span').textContent = 'Günlük limit doldu';
             } else {
                 btn.disabled = false;
-                const reward = CONFIG.LEVEL_REWARDS[Math.min(state.level, 15) - 1];
-                btn.querySelector('span').textContent = `Watch Ad (${reward.toFixed(3)} TON)`;
+                const reward = CONFIG.LEVEL_REWARDS[Math.min(state.level,15)-1];
+                btn.querySelector('span').textContent = `Reklam İzle (${reward.toFixed(3)} TON)`;
             }
             btn.classList.toggle('pulsing', !btn.disabled);
             updateChart();
@@ -305,31 +285,17 @@
             if (!ctx) return;
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-                    datasets: [{
-                        label: 'Ads',
-                        data: state.weeklyActivity,
-                        backgroundColor: 'rgba(10,132,255,0.2)',
-                        borderColor: '#0A84FF',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
+                type: 'bar', data: {
+                    labels: ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'],
+                    datasets: [{ label: 'Reklam', data: state.weeklyActivity, backgroundColor: 'rgba(10,132,255,0.2)', borderColor: '#0A84FF', borderWidth: 2, borderRadius: 8 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 5, color: '#F5F5F7' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { ticks: { color: '#F5F5F7' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                    },
+                options: { responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize:5, color:'#F5F5F7' }, grid: { color:'rgba(255,255,255,0.1)' } }, x: { ticks: { color:'#F5F5F7' }, grid: { color:'rgba(255,255,255,0.1)' } } },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        // ============ ETKİNLİKLER ============
         async function loadEvents() {
             const container = document.getElementById('events-container');
             try {
@@ -341,13 +307,11 @@
                     const card = document.createElement('div');
                     card.className = 'event-card';
                     card.innerHTML = `
-                        <img class="event-img" src="${event.image || 'https://via.placeholder.com/400x140?text=Event'}" alt="${event.title}">
+                        <img class="event-img" src="${event.image || 'https://via.placeholder.com/400x140?text=Etkinlik'}" alt="${event.title}">
                         <div class="event-info">
                             <div class="event-countdown" id="timer-${event.id}"></div>
                             <div class="event-reward">🎁 ${event.reward} TON</div>
-                            <button class="action-button" id="claim-${event.id}" ${state.completedEvents.includes(event.id) ? 'disabled' : ''}>
-                                ${state.completedEvents.includes(event.id) ? '✔️ Claimed' : 'Claim Reward'}
-                            </button>
+                            <button class="action-button" id="claim-${event.id}" ${state.completedEvents.includes(event.id) ? 'disabled' : ''}>${state.completedEvents.includes(event.id) ? '✔️ Alındı' : 'Ödülü Al'}</button>
                         </div>`;
                     container.appendChild(card);
 
@@ -355,16 +319,9 @@
                         const remaining = event.endTime - Date.now();
                         const el = document.getElementById(`timer-${event.id}`);
                         if (!el) return;
-                        if (remaining <= 0) {
-                            el.textContent = '⏰ Event ended';
-                            const btn = document.getElementById(`claim-${event.id}`);
-                            if (btn) btn.disabled = true;
-                            return;
-                        }
-                        const h = Math.floor(remaining / 3600000);
-                        const m = Math.floor((remaining % 3600000) / 60000);
-                        const s = Math.floor((remaining % 60000) / 1000);
-                        el.textContent = `⏳ Ends in ${h}h ${m}m ${s}s`;
+                        if (remaining <= 0) { el.textContent = '⏰ Etkinlik bitti'; const btn = document.getElementById(`claim-${event.id}`); if (btn) btn.disabled = true; return; }
+                        const h = Math.floor(remaining/3600000), m = Math.floor((remaining%3600000)/60000), s = Math.floor((remaining%60000)/1000);
+                        el.textContent = `⏳ ${h}s ${m}d ${s}s kaldı`;
                     };
                     updateTimer();
                     eventTimers.push(setInterval(updateTimer, 1000));
@@ -377,45 +334,33 @@
                                 state.totalEarning = res.newTotal;
                                 state.completedEvents.push(event.id);
                                 updateUI();
-                                claimBtn.textContent = '✔️ Claimed';
+                                claimBtn.textContent = '✔️ Alındı';
                                 claimBtn.disabled = true;
                                 alert(`✅ +${res.reward} TON`);
                             } catch(e) { alert(e.message); }
                         });
                     }
                 });
-            } catch(e) { console.error('Events error', e); }
+            } catch(e) { console.error('Etkinlik hatası', e); }
         }
 
-        // ============ BONUS GÖREVLER ============
         async function loadBonusTasks() {
             const container = document.getElementById('bonus-tasks-list');
-            container.innerHTML = 'Loading...';
+            container.innerHTML = 'Yükleniyor...';
             try {
                 const tasks = await api('/api/bonusTasks');
-                if (!tasks.length) {
-                    container.innerHTML = '<p style="text-align:center">No bonus tasks.</p>';
-                    return;
-                }
+                if (!tasks.length) { container.innerHTML = '<p style="text-align:center">Görev yok.</p>'; return; }
                 container.innerHTML = tasks.map(task => {
                     const completed = state.completedBonusTasks.includes(task.id);
-                    return `
-                        <div class="bonus-item">
-                            <div class="details">
-                                <span class="title">${task.title}</span>
-                                <span class="reward">+ ${task.reward} TON</span>
-                            </div>
-                            <button class="claim-button" data-id="${task.id}" data-link="${task.link}" data-reward="${task.reward}" ${completed ? 'disabled' : ''}>${completed ? 'Done' : 'Claim'}</button>
-                        </div>`;
+                    return `<div class="bonus-item">
+                        <div class="details"><span class="title">${task.title}</span><span class="reward">+ ${task.reward} TON</span></div>
+                        <button class="claim-button" data-id="${task.id}" data-link="${task.link}" data-reward="${task.reward}" ${completed?'disabled':''}>${completed?'Tamamlandı':'Al'}</button>
+                    </div>`;
                 }).join('');
-
                 document.querySelectorAll('.claim-button:not([disabled])').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
-                        const id = btn.dataset.id;
-                        const link = btn.dataset.link;
-                        const reward = parseFloat(btn.dataset.reward);
-                        btn.disabled = true;
-                        btn.textContent = 'Processing...';
+                        const id = btn.dataset.id, link = btn.dataset.link, reward = parseFloat(btn.dataset.reward);
+                        btn.disabled = true; btn.textContent = 'İşleniyor...';
                         tg?.openLink(link);
                         setTimeout(() => {
                             if (!state.completedBonusTasks.includes(id)) {
@@ -428,17 +373,13 @@
                         }, 5000);
                     });
                 });
-            } catch(e) {
-                container.innerHTML = '<p style="text-align:center">Error loading tasks.</p>';
-            }
+            } catch(e) { container.innerHTML = '<p style="text-align:center">Yükleme hatası.</p>'; }
         }
 
-        // ============ REKLAM İZLEME ============
         async function watchAd() {
             const overlay = document.getElementById('ad-loader-overlay');
             overlay.style.display = 'flex';
             try {
-                // Monetag SDK (kendi zone ID'nizi girin)
                 if (typeof window.show_12345 === 'function') await window.show_12345();
                 const res = await api(`/api/user/${userId}/watchAd`, 'POST');
                 state.totalEarning = res.newTotal;
@@ -465,14 +406,13 @@
             finally { overlay.style.display = 'none'; }
         }
 
-        // ============ ÇEKİM ============
         document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const amount = +document.getElementById('withdraw-amount').value;
             const wallet = document.getElementById('account-number').value;
             const btn = document.getElementById('withdraw-submit-button');
-            btn.querySelector('.button-text').style.display = 'none';
-            btn.querySelector('.spinner').style.display = 'block';
+            btn.querySelector('.button-text').style.display='none';
+            btn.querySelector('.spinner').style.display='block';
             btn.disabled = true;
             try {
                 const res = await api(`/api/user/${userId}/withdraw`, 'POST', { amount, walletAddress: wallet });
@@ -484,82 +424,79 @@
                 document.getElementById('withdraw-form').reset();
             } catch(e) { alert(e.message); }
             finally {
-                btn.querySelector('.button-text').style.display = 'inline';
-                btn.querySelector('.spinner').style.display = 'none';
+                btn.querySelector('.button-text').style.display='inline';
+                btn.querySelector('.spinner').style.display='none';
                 btn.disabled = false;
             }
         });
 
-        // ============ GEÇMİŞ ============
         async function loadHistory() {
             const history = await api(`/api/user/${userId}/history`);
             const container = document.getElementById('history-list');
             container.innerHTML = history.length ? history.map(h => `
                 <div class="history-item">
-                    <div class="history-details">
-                        <span class="method-number">TON: ${h.number}</span>
-                        <span class="date">${new Date(h.date).toLocaleString()}</span>
-                    </div>
-                    <div class="history-amount">
-                        <span>${h.amount} TON</span>
-                        <div class="history-status ${h.status.toLowerCase()}">${h.status}</div>
-                    </div>
-                </div>`).join('') : '<p class="no-history">No history.</p>';
+                    <div class="history-details"><span class="method-number">TON: ${h.number}</span><span class="date">${new Date(h.date).toLocaleString()}</span></div>
+                    <div class="history-amount"><span>${h.amount} TON</span><div class="history-status ${h.status.toLowerCase()}">${h.status}</div></div>
+                </div>`).join('') : '<p class="no-history">Geçmiş yok.</p>';
         }
 
-        // ============ MODAL ============
         function showModal(id, btn) {
             document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
-            if (id === 'historyModal') loadHistory();
-            if (id === 'bonusTasksModal') loadBonusTasks();
-            document.getElementById(id).style.display = 'flex';
+            if (id==='historyModal') loadHistory();
+            if (id==='bonusTasksModal') loadBonusTasks();
+            document.getElementById(id).style.display='flex';
         }
         function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            document.getElementById(id).style.display='none';
             document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
         }
         window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModal(e.target.id); };
 
-        // ============ DİĞER BUTONLAR ============
         document.getElementById('join-channel-button').onclick = () => tg?.openTelegramLink(CONFIG.CHANNEL_LINK);
         document.getElementById('admin-contact-button').onclick = () => tg?.openTelegramLink(`https://t.me/${CONFIG.ADMIN_USERNAME}`);
         document.getElementById('copy-link-button').onclick = () => {
             const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
-            navigator.clipboard.writeText(link).then(() => alert('Referral link copied!'));
+            navigator.clipboard.writeText(link).then(() => alert('Bağlantı kopyalandı!'));
         };
         document.getElementById('share-link-button').onclick = () => {
             const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
-            tg?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Earn TON with @TonexaAdsBot!`);
+            tg?.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=TON kazan!`);
         };
 
-        // ============ BAŞLAT ============
         (async function init() {
-            // Preloader
-            let p = 0;
-            const intv = setInterval(() => {
-                p += Math.floor(Math.random() * 5) + 1;
-                if (p > 100) p = 100;
-                document.getElementById('preloader-percentage').textContent = `${p}%`;
-                if (p >= 100) {
-                    clearInterval(intv);
-                    document.getElementById('preloader').style.opacity = '0';
-                    document.getElementById('preloader-footer').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('preloader').style.display = 'none';
-                        document.getElementById('preloader-footer').style.display = 'none';
-                        document.querySelector('.container').style.display = 'block';
-                    }, 500);
+            let p=0;
+            const intv=setInterval(()=>{
+                p+=Math.floor(Math.random()*5)+1; if(p>100)p=100;
+                document.getElementById('preloader-percentage').textContent=`${p}%`;
+                if(p>=100){clearInterval(intv);
+                    document.getElementById('preloader').style.opacity='0';
+                    document.getElementById('preloader-footer').style.opacity='0';
+                    setTimeout(()=>{
+                        document.getElementById('preloader').style.display='none';
+                        document.getElementById('preloader-footer').style.display='none';
+                        document.querySelector('.container').style.display='block';
+                    },500);
                 }
-            }, 60);
+            },60);
 
             try {
+                const tgUser = tg?.initDataUnsafe?.user;
+                if (tgUser) {
+                    await api('/api/user/register', 'POST', {
+                        userId: String(tgUser.id),
+                        firstName: tgUser.first_name,
+                        lastName: tgUser.last_name,
+                        username: tgUser.username,
+                        photoUrl: tgUser.photo_url
+                    }).catch(e => console.error('Kayıt hatası:', e));
+                }
+
                 const user = await api(`/api/user/${userId}`);
                 state = user;
                 updateUI();
                 loadEvents();
 
-                // Cooldown sayaç
                 if (state.cooldownUntil && Date.now() < state.cooldownUntil) {
                     cooldownInterval = setInterval(async () => {
                         if (Date.now() >= state.cooldownUntil) {
@@ -571,7 +508,6 @@
                     }, 1000);
                 }
 
-                // Referans işle
                 const startParam = tg?.initDataUnsafe?.start_param;
                 if (startParam && !isNaN(startParam) && startParam !== userId.toString()) {
                     await api(`/api/user/${userId}/referral`, 'POST', { referrerId: parseInt(startParam) });
@@ -579,25 +515,23 @@
 
                 document.getElementById('watch-ad-button').addEventListener('click', watchAd);
 
-                // Welcome
                 if (!sessionStorage.getItem('welcomeShown')) {
-                    document.getElementById('welcome-title').textContent = '🎉 Welcome!';
+                    document.getElementById('welcome-title').textContent = '🎉 Hoş Geldiniz!';
                     document.getElementById('welcome-message').textContent = CONFIG.WELCOME_MSG;
                     showModal('welcomeModal');
                     sessionStorage.setItem('welcomeShown', '1');
                 }
 
-                // Profil
-                const tgUser = tg?.initDataUnsafe?.user;
-                if (tgUser?.first_name) {
-                    document.getElementById('greeting').textContent = `Welcome, ${tgUser.first_name}!`;
+                const tgUserProfile = tg?.initDataUnsafe?.user;
+                if (tgUserProfile?.first_name) {
+                    document.getElementById('greeting').textContent = `Hoş Geldin, ${tgUserProfile.first_name}!`;
                     const pic = document.getElementById('profile-pic');
-                    pic.innerHTML = tgUser.photo_url ? `<img src="${tgUser.photo_url}" alt="P">` : tgUser.first_name.charAt(0);
+                    pic.innerHTML = tgUserProfile.photo_url ? `<img src="${tgUserProfile.photo_url}" alt="P">` : tgUserProfile.first_name.charAt(0);
                 }
 
                 tg?.ready();
                 tg?.expand();
-            } catch(e) { alert('App start error: ' + e.message); }
+            } catch(e) { alert('Uygulama başlatılamadı: ' + e.message); }
         })();
     </script>
 </body>
