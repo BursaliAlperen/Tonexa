@@ -325,5 +325,28 @@ app.get('/api/bonusTasks', async (req, res) => {
     res.json(tasks);
 });
 
+
+// Health check / keep-alive
+app.get('/health', (req, res) => {
+    res.status(200).json({ ok: true, timestamp: Date.now() });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ TonexaAdsBot backend çalışıyor: port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`✅ TonexaAdsBot backend çalışıyor: port ${PORT}`);
+
+    const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL || process.env.RENDER_EXTERNAL_URL;
+    const KEEP_ALIVE_INTERVAL_MIN = Number(process.env.KEEP_ALIVE_INTERVAL_MIN || 14);
+
+    if (KEEP_ALIVE_URL) {
+        const pingUrl = `${KEEP_ALIVE_URL.replace(/\/$/, '')}/health`;
+        setInterval(async () => {
+            try {
+                await fetch(pingUrl);
+                console.log(`💓 Keep-alive ping başarılı: ${pingUrl}`);
+            } catch (error) {
+                console.error('⚠️ Keep-alive ping hatası:', error.message);
+            }
+        }, KEEP_ALIVE_INTERVAL_MIN * 60 * 1000);
+    }
+});

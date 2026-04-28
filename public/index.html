@@ -209,9 +209,9 @@
         const CONFIG = {
             BOT_USERNAME: 'TonexaAdsBot',
             TONEXA_BOT_URL: 'https://tonexa.onrender.com/',
+            ADMIN_PAGE_URL: '/admin.html',
             CHANNEL_LINK: 'https://t.me/BasicTouchPro',
             ADMIN_USERNAME: 'AlperenTHE',
-            ADMIN_PANEL_URL: 'https://tonexa.onrender.com/',
             LEVEL_XP: [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 3800, 4700, 5700, 6800, 8000, 9300],
             LEVEL_REWARDS: [
                 0.002, 0.002214, 0.002428, 0.002642, 0.002856,
@@ -448,7 +448,7 @@
 
         document.getElementById('join-channel-button').onclick = () => tg?.openTelegramLink(CONFIG.CHANNEL_LINK);
         document.getElementById('admin-contact-button').onclick = () => tg?.openTelegramLink(`https://t.me/${CONFIG.ADMIN_USERNAME}`);
-        document.getElementById('admin-panel-button').onclick = () => tg?.openLink(CONFIG.ADMIN_PANEL_URL) || window.open(CONFIG.ADMIN_PANEL_URL, '_blank');
+        document.getElementById('admin-panel-button').onclick = () => tg?.openLink(CONFIG.ADMIN_PAGE_URL) || window.open(CONFIG.ADMIN_PAGE_URL, '_blank');
         document.getElementById('tonexa-bot-start-button').onclick = () => tg?.openLink(CONFIG.TONEXA_BOT_URL) || window.open(CONFIG.TONEXA_BOT_URL, '_blank');
         document.getElementById('copy-link-button').onclick = () => {
             const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${userId}`;
