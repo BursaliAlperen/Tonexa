@@ -460,6 +460,12 @@ app.use('/api/admin', (req, res, next) => {
     next();
 });
 
+// Admin: hızlı durum kontrolü (UI görünürlüğü için)
+app.get('/api/admin/check', (req, res) => {
+    const adminId = req.query.adminId;
+    res.json({ isAdmin: isAdmin(adminId) });
+});
+
 // Admin: çekim geçmişi
 app.get('/api/admin/withdrawals', async (req, res) => {
     const snapshot = await db.collection('users').get();

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tonexa Admin Panel</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       --bg: #0f1115;
@@ -114,11 +115,13 @@
   </div>
 
   <script>
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
     const savedTheme = localStorage.getItem('adminTheme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
 
     const adminInput = document.getElementById('admin-id');
-    adminInput.value = localStorage.getItem('adminId') || '';
+    const tgAdminId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : '';
+    adminInput.value = localStorage.getItem('adminId') || tgAdminId || '';
 
     const getAdminId = () => (localStorage.getItem('adminId') || '').trim();
 
@@ -141,6 +144,14 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Hata');
       return data;
+    }
+
+    async function checkAdminAccess() {
+      const adminId = getAdminId();
+      if (!adminId) return false;
+      const res = await fetch(`/api/admin/check?adminId=${encodeURIComponent(adminId)}`);
+      const data = await res.json();
+      return !!data.isAdmin;
     }
 
     function fmtDate(iso) {
@@ -276,8 +287,15 @@
       }
     };
 
-    loadWithdrawals();
-    loadEvents();
+    (async () => {
+      const ok = await checkAdminAccess().catch(() => false);
+      if (!ok) {
+        document.body.innerHTML = '<div style=\"padding:24px;font-family:Arial;color:#fff;background:#111;min-height:100vh;\">⛔ Admin yetkisi yok. Bu sayfa yalnızca admin kullanıcılar içindir.</div>';
+        return;
+      }
+      loadWithdrawals();
+      loadEvents();
+    })();
   </script>
 </body>
 </html>

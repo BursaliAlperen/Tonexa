@@ -161,7 +161,7 @@
             <h3 class="card-title">Destek</h3>
             <p>Admin: <b>@AlperenTHE</b></p>
             <button class="action-button" id="admin-contact-button"><i class="fa-brands fa-telegram"></i><span>Admin ile İletişim</span></button>
-            <button class="action-button secondary-button" id="admin-panel-button"><i class="fa-solid fa-shield-halved"></i><span>Admin Panel</span></button>
+            <button class="action-button secondary-button" id="admin-panel-button" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin Panel</span></button>
             <button class="action-button secondary-button" id="tonexa-bot-start-button"><i class="fa-solid fa-rocket"></i><span>TonexaBot Başlat</span></button>
         </div>
     </div>
@@ -510,6 +510,12 @@
                 state = user;
                 updateUI();
                 loadEvents();
+                try {
+                    const adminCheck = await api(`/api/admin/check?adminId=${encodeURIComponent(userId)}`);
+                    document.getElementById('admin-panel-button').style.display = adminCheck.isAdmin ? 'flex' : 'none';
+                } catch (e) {
+                    document.getElementById('admin-panel-button').style.display = 'none';
+                }
 
                 if (state.cooldownUntil && Date.now() < state.cooldownUntil) {
                     cooldownInterval = setInterval(async () => {
