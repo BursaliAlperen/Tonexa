@@ -7,16 +7,13 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
         :root { --pink: #FF7EB9; --blue: #70D6FF; --yellow: #FFD60A; --black: #000000; --bg: #0c0c0c; }
-        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Fredoka', sans-serif; margin: 0; padding: 20px 15px 120px 15px; background-color: var(--bg); color: var(--black); }
 
@@ -38,11 +35,11 @@
 <body>
 
 <div id="loader">
-    <h1 style="color:var(--pink); font-size: 32px; margin:0;">CLASH TON</h1>
-    <p id="l-text" style="font-size:12px; opacity:0.6;">Initializing...</p>
+    <h1 style="color:var(--pink); font-size: 32px;">CLASH TON</h1>
+    <p>Starting Application...</p>
 </div>
 
-<div id="app-ui">
+<div id="app-content">
     <div id="home" class="section active">
         <div class="card-pro" style="background: var(--pink); color: white; text-align: center;">
             <div style="font-size: 42px; font-weight: 800;" id="txt-balance">0.000 TON</div>
@@ -60,31 +57,30 @@
             </div>
         </div>
 
-        <button class="btn-main" id="ad-trigger">
+        <button class="btn-main" id="ad-button">
             <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
         </button>
     </div>
 
-    <div id="wallet" class="section"><div class="card-pro"><h2>Wallet</h2><p>Withdrawals process in 24h.</p></div></div>
-    <div id="logs" class="section"><div class="card-pro"><h2>History</h2><div id="log-list">No data found.</div></div></div>
+    <div id="wallet" class="section"><div class="card-pro"><h2>Wallet</h2><p>Minimum: 0.5 TON</p></div></div>
+    <div id="logs" class="section"><div class="card-pro"><h2>History</h2><div id="log-list">No activity yet.</div></div></div>
     <div id="invite" class="section">
         <div class="card-pro" style="text-align:center;">
             <h2>Invite Friends</h2>
-            <p>Earn 0.05 TON for each invite.</p>
-            <button class="btn-main" onclick="copyInvite()">COPY INVITE LINK</button>
+            <button class="btn-main" onclick="copyRef()">COPY LINK</button>
         </div>
     </div>
 </div>
 
 <div class="nav-bar">
-    <button class="nav-btn active" onclick="nav('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
-    <button class="nav-btn" onclick="nav('wallet', this)"><i class="fa-solid fa-wallet"></i><span>Cash</span></button>
-    <button class="nav-btn" onclick="nav('logs', this)"><i class="fa-solid fa-list"></i><span>Log</span></button>
-    <button class="nav-btn" onclick="nav('invite', this)"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></button>
+    <div class="nav-btn active" onclick="nav('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+    <div class="nav-btn" onclick="nav('wallet', this)"><i class="fa-solid fa-wallet"></i><span>Cash</span></div>
+    <div class="nav-btn" onclick="nav('logs', this)"><i class="fa-solid fa-list"></i><span>Log</span></div>
+    <div class="nav-btn" onclick="nav('invite', this)"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></div>
 </div>
 
 <script>
-    // 1. GÜNCEL CONFIG
+    // 1. Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
       authDomain: "gen-lang-client-0766979962.firebaseapp.com",
@@ -98,88 +94,78 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const tg = window.Telegram.WebApp;
-    
-    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "test_user_123";
+    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "user_test";
     let state = { balance: 0, todayAds: 0, refs: 0 };
 
-    // 2. RichAds Başlatma (Production)
-    const richAds = new window.TelegramAdsController();
-    richAds.initialize({ pubId: "988708", appId: "7273", debug: false });
+    // 2. RichAds SDK Başlatma (Doküman Step 3)
+    const richadsController = new window.TelegramAdsController();
+    richadsController.initialize({
+        pubId: "988708",
+        appId: "7273",
+        debug: false
+    });
 
-    // --- LOADING ÇÖZÜCÜ ---
-    function startApp() {
-        // Firebase'i beklemeden 1.5 saniye sonra uygulamayı aç
-        setTimeout(() => {
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-            }, 500);
-        }, 1500);
-        
-        fetchData();
-    }
-
-    async function fetchData() {
+    // 3. Uygulama Başlatma (Loading Sorununu Çözer)
+    async function startApp() {
         try {
-            // Arka planda veriyi çek, gelirse UI'ı güncelle
             const doc = await db.collection('users').doc(uid).get();
-            if (doc.exists()) {
-                state = doc.data();
-                updateUI();
-            } else {
-                await db.collection('users').doc(uid).set(state);
-            }
-        } catch (e) {
-            console.warn("Firestore Error:", e.message);
-        }
+            if (doc.exists()) state = doc.data();
+            else await db.collection('users').doc(uid).set(state);
+            updateUI();
+        } catch(e) { console.log("DB Error"); }
+
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+        }, 800);
     }
 
     function updateUI() {
         document.getElementById('txt-balance').textContent = (state.balance || 0).toFixed(3) + " TON";
         document.getElementById('txt-daily').textContent = (state.todayAds || 0) + "/50";
         document.getElementById('txt-refs').textContent = (state.refs || 0);
-        document.getElementById('ad-trigger').disabled = (state.todayAds >= 50);
+        document.getElementById('ad-button').disabled = (state.todayAds >= 50);
     }
 
-    // --- REKLAM TETİKLEYİCİ ---
-    document.getElementById('ad-trigger').onclick = function() {
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = "LOADING AD...";
+    // 4. REKLAM TETİKLEME (Doküman Step 4 - .then/.catch Yapısı)
+    const button = document.getElementById('ad-button');
+    button.addEventListener('click', () => {
+        button.disabled = true;
+        button.innerHTML = "LOADING...";
 
-        richAds.triggerInterstitialVideo()
-            .then(() => {
+        richadsController.triggerInterstitialVideo()
+            .then((result) => {
+                // Reklam Başarılı
                 state.balance += 0.005;
                 state.todayAds += 1;
                 updateUI();
                 db.collection('users').doc(uid).set(state, {merge:true});
-                db.collection('watchads').add({ uid, date: new Date(), amt: 0.005 });
-                tg.showPopup({ message: "Success! +0.005 TON earned." });
+                db.collection('watchads').add({ uid, date: new Date(), status: 'success' });
+                tg.showPopup({ message: "Reward: +0.005 TON!" });
             })
-            .catch(() => {
-                tg.showAlert("Ad not ready yet. Please try again.");
+            .catch((error) => {
+                // Reklam Başarısız veya Kapalı
+                tg.showAlert("Ad not ready or closed early. Please try again.");
             })
             .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-play-circle"></i> WATCH AD & EARN';
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-play-circle"></i> WATCH AD & EARN';
             });
-    }
+    });
 
-    // --- NAV & INVITE ---
-    function nav(id, btn) {
+    // Navigasyon
+    function nav(id, el) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
+        el.classList.add('active');
     }
 
-    function copyInvite() {
+    function copyRef() {
         const link = "https://t.me/ClashTonAdsBot?start=" + uid;
         navigator.clipboard.writeText(link);
-        tg.showAlert("Link copied!");
+        tg.showAlert("Invite link copied!");
     }
 
-    // Uygulamayı Başlat
     window.onload = startApp;
     tg.ready();
     tg.expand();
