@@ -60,7 +60,6 @@
         .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { border-color: var(--success); }
         .toast.error { border-color: var(--error); }
-        .toast.info { border-color: var(--accent); }
 
         .container { flex:1; overflow-y:auto; padding:20px 20px 110px; position:relative; z-index:1; }
         .card {
@@ -149,6 +148,7 @@
 <div class="toast" id="toast"></div>
 
 <div class="container">
+    <!-- ANA SAYFA -->
     <div id="p-home" class="page active">
         <div class="card" style="text-align:center;">
             <div class="balance-label">✦ Mevcut Bakiye</div>
@@ -168,7 +168,7 @@
 
         <p class="info-text">
             🎬 Video reklam izle, 0.005 TON kazan.<br>
-            Sayfa değiştirince otomatik reklam çıkar.
+            Reklam bulunamazsa otomatik tekrar dener.
         </p>
 
         <button class="btn btn-primary" id="btn-watch">
@@ -177,6 +177,7 @@
         </button>
     </div>
 
+    <!-- ÇEKİM -->
     <div id="p-withdraw" class="page">
         <div class="card">
             <h3 style="margin-bottom:24px; font-weight:700;">📤 Çekim Talebi</h3>
@@ -199,6 +200,7 @@
         </div>
     </div>
 
+    <!-- REFERANS -->
     <div id="p-ref" class="page">
         <div class="card">
             <h3 style="margin-bottom:24px;">👥 Arkadaşlarını Davet Et</h3>
@@ -246,6 +248,7 @@
     let adInProgress = false;
     let weeklyChart = null;
     let autoAdTimer = null;
+    let retryCount = 0;
 
     function getTodayKey() {
         const keys = ['sun','mon','tue','wed','thu','fri','sat'];
@@ -271,8 +274,10 @@
     function cleanupAd() {
         document.getElementById('ad-loader').style.display = 'none';
         adInProgress = false;
+        retryCount = 0;
     }
 
+    // Tek bir reklam türünü dene
     async function tryOnce(fn) {
         try {
             await fn();
@@ -282,7 +287,7 @@
         }
     }
 
-    // Video butonu: 3 kez dene
+    // Buton: Video reklam, 3 kez dene
     async function startVideoAd() {
         if (adInProgress) return;
         if (state.todayAds >= DAILY_LIMIT) {
@@ -292,13 +297,12 @@
 
         adInProgress = true;
         document.getElementById('ad-loader').style.display = 'flex';
-        const loaderText = document.querySelector('.loader-text');
-        loaderText.innerText = 'Video reklam aranıyor…';
+        document.querySelector('.loader-text').innerText = 'Video reklam aranıyor…';
 
         for (let i = 0; i < 3; i++) {
             if (i > 0) {
-                loaderText.innerText = `Tekrar deneniyor (${i+1}/3)…`;
-                await new Promise(r => setTimeout(r, 1500));
+                document.querySelector('.loader-text').innerText = `Tekrar deneniyor (${i+1}/3)…`;
+                await new Promise(r => setTimeout(r, 1500)); // denemeler arası bekle
             }
             const ok = await tryOnce(() => window.TelegramAdsController.triggerInterstitialVideo());
             if (ok) {
@@ -307,70 +311,39 @@
                 return;
             }
         }
+
+        // 3 deneme de başarısız
         showToast("Video reklam bulunamadı, lütfen sonra tekrar dene.", "error");
         cleanupAd();
     }
 
-    // Sayfa geçişi otomatik reklam (push/banner yoksa video)
-    async function startAutoAd() {
+    // Sayfa değişimi: Push veya Banner, 2 kez dene
+    async function startPushOrBannerAd() {
         if (adInProgress) return;
         if (state.todayAds >= DAILY_LIMIT) return;
 
         adInProgress = true;
         document.getElementById('ad-loader').style.display = 'flex';
-        const loaderText = document.querySelector('.loader-text');
+        const isPush = Math.random() < 0.5;
+        document.querySelector('.loader-text').innerText = isPush ? 'Push reklam aranıyor…' : 'Banner reklam aranıyor…';
 
-        // Önce push dene
-        if (typeof window.TelegramAdsController.triggerPush === 'function') {
-            loaderText.innerText = 'Push reklam aranıyor…';
-            for (let i = 0; i < 2; i++) {
-                if (i > 0) {
-                    loaderText.innerText = `Push tekrar (${i+1}/2)…`;
-                    await new Promise(r => setTimeout(r, 1500));
-                }
-                const ok = await tryOnce(() => window.TelegramAdsController.triggerPush());
-                if (ok) {
-                    grantReward(REWARD_AMOUNT);
-                    cleanupAd();
-                    return;
-                }
-            }
-        }
+        const fn = isPush
+            ? () => window.TelegramAdsController.triggerPush()
+            : () => window.TelegramAdsController.triggerInterstitialBanner();
 
-        // Sonra banner dene
-        if (typeof window.TelegramAdsController.triggerInterstitialBanner === 'function') {
-            loaderText.innerText = 'Banner reklam aranıyor…';
-            for (let i = 0; i < 2; i++) {
-                if (i > 0) {
-                    loaderText.innerText = `Banner tekrar (${i+1}/2)…`;
-                    await new Promise(r => setTimeout(r, 1500));
-                }
-                const ok = await tryOnce(() => window.TelegramAdsController.triggerInterstitialBanner());
-                if (ok) {
-                    grantReward(REWARD_AMOUNT);
-                    cleanupAd();
-                    return;
-                }
-            }
-        }
-
-        // Hiçbiri yoksa video dene
-        loaderText.innerText = 'Video reklam aranıyor…';
         for (let i = 0; i < 2; i++) {
             if (i > 0) {
-                loaderText.innerText = `Video tekrar (${i+1}/2)…`;
+                document.querySelector('.loader-text').innerText = `Tekrar deneniyor (${i+1}/2)…`;
                 await new Promise(r => setTimeout(r, 1500));
             }
-            const ok = await tryOnce(() => window.TelegramAdsController.triggerInterstitialVideo());
+            const ok = await tryOnce(fn);
             if (ok) {
                 grantReward(REWARD_AMOUNT);
                 cleanupAd();
                 return;
             }
         }
-
-        // Başarısız
-        showToast("Otomatik reklam bulunamadı.", "error");
+        // sessizce temizle
         cleanupAd();
     }
 
@@ -386,13 +359,11 @@
 
         if (autoAdTimer) clearTimeout(autoAdTimer);
         if (!adInProgress && state.todayAds < DAILY_LIMIT) {
-            // Kullanıcıya reklamın yakında başlayacağını bildir
-            showToast("Reklam yükleniyor…", "info");
             autoAdTimer = setTimeout(() => {
                 if (!adInProgress && state.todayAds < DAILY_LIMIT) {
-                    startAutoAd();
+                    startPushOrBannerAd();
                 }
-            }, 1500); // 1.5 saniye sonra başlat
+            }, 2000);
         }
     }
 
@@ -453,7 +424,7 @@
         const t = document.getElementById('toast');
         t.textContent = msg;
         t.className = `toast ${type} visible`;
-        setTimeout(() => t.classList.remove('visible'), 2500);
+        setTimeout(() => t.classList.remove('visible'), 2800);
     }
 
     function handleWithdraw() {
