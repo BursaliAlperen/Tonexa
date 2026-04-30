@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ClashTonAds - Real Earning</title>
+    <title>ClashTonAds - Fixed</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
@@ -15,101 +15,35 @@
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
         window.richAdsController = new TelegramAdsController();
-        window.richAdsController.initialize({
-            pubId: "988708", appId: "7273", debug: false 
-        });
+        window.richAdsController.initialize({ pubId: "988708", appId: "7273", debug: false });
     </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
-        
-        :root {
-            --kawaii-pink: #FF7EB9;
-            --kawaii-blue: #70D6FF;
-            --kawaii-yellow: #FFD60A;
-            --black: #000000;
-        }
-
+        :root { --kawaii-pink: #FF7EB9; --kawaii-blue: #70D6FF; --kawaii-yellow: #FFD60A; --black: #000000; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Fredoka', sans-serif;
-            margin: 0; padding: 20px 15px 100px 15px;
-            background-color: #121212;
-            color: var(--black);
-            overscroll-behavior-y: contain;
-        }
+        body { font-family: 'Fredoka', sans-serif; margin: 0; padding: 20px 15px 100px 15px; background-color: #121212; color: var(--black); }
 
-        /* Black Border Style */
-        .pro-card {
-            background: white;
-            border: 3px solid var(--black);
-            box-shadow: 5px 5px 0px var(--black);
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+        .pro-card { background: white; border: 3px solid var(--black); box-shadow: 5px 5px 0px var(--black); border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+        .btn-watch { width: 100%; padding: 20px; background: var(--kawaii-yellow); border: 3px solid var(--black); box-shadow: 5px 5px 0px var(--black); border-radius: 18px; font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-watch:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--black); }
 
-        .btn-watch {
-            width: 100%;
-            padding: 20px;
-            background: var(--kawaii-yellow);
-            border: 3px solid var(--black);
-            box-shadow: 5px 5px 0px var(--black);
-            border-radius: 18px;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.1s;
-        }
-
-        .btn-watch:active {
-            transform: translate(3px, 3px);
-            box-shadow: 2px 2px 0px var(--black);
-        }
-
-        .btn-watch:disabled {
-            background: #888 !important;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: 5px 5px 0px var(--black);
-        }
-
-        /* Nav Bar */
-        .nav-bar {
-            position: fixed; bottom: 20px; left: 15px; right: 15px;
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            background: white; border: 3px solid var(--black);
-            border-radius: 20px; box-shadow: 5px 5px 0px var(--black);
-            padding: 10px; z-index: 100;
-        }
-        .nav-item {
-            border: none; background: none; font-size: 10px; font-weight: 700;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-        }
-        .nav-item.active { color: var(--kawaii-pink); }
-        .nav-item i { font-size: 20px; }
-
-        #loader {
-            position: fixed; inset: 0; background: #121212; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
-        }
+        #loader { position: fixed; inset: 0; background: #121212; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .nav-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; display: grid; grid-template-columns: repeat(4, 1fr); background: white; border: 3px solid var(--black); border-radius: 20px; box-shadow: 5px 5px 0px var(--black); padding: 10px; }
+        .nav-item { border: none; background: none; font-size: 10px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <h1 style="color:var(--kawaii-pink)">CLASH TON</h1>
-        <div id="load-text">Initializing...</div>
+        <div id="load-text">Connecting to Database...</div>
+        <button id="bypass-btn" style="display:none; margin-top:20px; padding:10px; border-radius:10px; border:none; background:var(--kawaii-blue);">Open Anyway (Offline)</button>
     </div>
 
     <div id="main-app" style="display:none;">
         <div class="pro-card" style="background: var(--kawaii-pink); color: white; text-align: center;">
-            <h3 style="margin:0; font-size:14px; text-transform:uppercase;">My Balance</h3>
+            <h3 style="margin:0; font-size:14px;">My Balance</h3>
             <div style="font-size:36px; font-weight:800;" id="balance">0.000 TON</div>
         </div>
 
@@ -124,20 +58,7 @@
             </div>
         </div>
 
-        <button class="btn-watch" id="watchBtn">
-            <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
-        </button>
-
-        <div class="pro-card" style="margin-top:20px; height: 200px;">
-            <canvas id="myChart"></canvas>
-        </div>
-    </div>
-
-    <div class="nav-bar">
-        <button class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></button>
-        <button class="nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></button>
-        <button class="nav-item"><i class="fa-solid fa-list"></i><span>Log</span></button>
-        <button class="nav-item"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></button>
+        <button class="btn-watch" id="watchBtn">WATCH AD & EARN</button>
     </div>
 
     <script>
@@ -154,92 +75,72 @@
         const db = firebase.firestore();
         const tg = window.Telegram.WebApp;
         
-        let userId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "test_dev";
+        let userId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
         let userState = { balance: 0, totalAds: 0, todayAds: 0, refs: 0 };
 
+        // --- TAKILMAYI ÖNLEYEN INIT ---
         async function initUser() {
-            const userRef = db.collection('users').doc(userId);
-            const doc = await userRef.get();
-            
-            if (!doc.exists()) {
-                await userRef.set(userState);
-            } else {
-                userState = doc.data();
+            try {
+                // 5 saniye içinde cevap gelmezse offline devam et
+                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
+                const userRef = db.collection('users').doc(userId);
+                
+                const doc = await Promise.race([userRef.get(), timeout]);
+                
+                if (doc && doc.exists()) {
+                    userState = doc.data();
+                } else {
+                    await userRef.set(userState);
+                }
+            } catch (err) {
+                console.warn("Firestore not reachable, using local/default state.");
+                document.getElementById('bypass-btn').style.display = 'block';
+                // Eğer hata verirse yine de uygulamayı aç
             }
+            startApp();
+        }
+
+        function startApp() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
             updateUI();
         }
 
         function updateUI() {
-            document.getElementById('balance').textContent = userState.balance.toFixed(3) + " TON";
-            document.getElementById('today-count').textContent = userState.todayAds + "/50";
-            document.getElementById('ref-count').textContent = userState.refs;
-            
-            const btn = document.getElementById('watchBtn');
-            if(userState.todayAds >= 50) {
-                btn.disabled = true;
-                btn.textContent = "LIMIT REACHED";
-            }
+            document.getElementById('balance').textContent = (userState.balance || 0).toFixed(3) + " TON";
+            document.getElementById('today-count').textContent = (userState.todayAds || 0) + "/50";
+            document.getElementById('ref-count').textContent = userState.refs || 0;
         }
 
-        // GERÇEK REKLAM VE LOG SİSTEMİ
         async function handleWatchAd() {
             const btn = document.getElementById('watchBtn');
-            btn.disabled = true; // Çift tıklamayı engelle
-            
+            btn.disabled = true;
             try {
-                // RichAds Tetikleyici
                 await window.richAdsController.triggerInterstitialVideo();
                 
-                // Ödül ve Loglama
-                const reward = 0.005;
-                userState.balance += reward;
-                userState.totalAds += 1;
+                userState.balance += 0.005;
                 userState.todayAds += 1;
 
-                // 1. Kullanıcıyı güncelle
-                await db.collection('users').doc(userId).update(userState);
-
-                // 2. watchads koleksiyonuna gerçek log at
-                await db.collection('watchads').add({
-                    uid: userId,
-                    reward: reward,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
                 updateUI();
+                
+                // Firestore'a kaydet (Hata alsa bile arayüz güncellendi)
+                db.collection('users').doc(userId).set(userState, {merge: true}).catch(e => console.log("Save failed"));
+                db.collection('watchads').add({ uid: userId, timestamp: new Date() }).catch(e => {});
+
                 tg.showPopup({ message: "Success! +0.005 TON" });
             } catch (err) {
-                tg.showAlert("Ad not ready or closed early.");
+                tg.showAlert("Ad failed to load.");
             } finally {
                 btn.disabled = false;
             }
         }
 
-        window.onload = async () => {
-            await initUser();
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            document.getElementById('watchBtn').addEventListener('click', handleWatchAd);
-            
-            // Chart init
-            const ctx = document.getElementById('myChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Ads',
-                        data: [12, 19, 3, 5, 2, 3, userState.todayAds],
-                        borderColor: '#FF7EB9',
-                        tension: 0.4
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+        document.getElementById('bypass-btn').onclick = startApp;
+        document.getElementById('watchBtn').onclick = handleWatchAd;
 
-            tg.ready();
-            tg.expand();
-        };
+        window.onload = initUser;
+        tg.ready();
+        tg.expand();
     </script>
 </body>
 </html>
