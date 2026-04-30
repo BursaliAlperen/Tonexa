@@ -7,13 +7,16 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
         :root { --pink: #FF7EB9; --blue: #70D6FF; --yellow: #FFD60A; --black: #000000; --bg: #0c0c0c; }
+        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Fredoka', sans-serif; margin: 0; padding: 20px 15px 120px 15px; background-color: var(--bg); color: var(--black); }
 
@@ -23,28 +26,29 @@
 
         .btn-main { width: 100%; padding: 22px; background: var(--yellow); border: 4px solid var(--black); box-shadow: 6px 6px 0px var(--black); border-radius: 20px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
         .btn-main:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--black); }
-        .btn-main:disabled { background: #555; color: #888; border-color: #333; cursor: not-allowed; }
+        .btn-main:disabled { background: #555; color: #888; border-color: #333; }
 
         .nav-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; display: grid; grid-template-columns: repeat(4, 1fr); background: white; border: 4px solid var(--black); border-radius: 25px; box-shadow: 6px 6px 0px var(--black); padding: 12px; z-index: 1000; }
         .nav-btn { border: none; background: none; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #999; }
         .nav-btn.active { color: var(--pink); }
 
-        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: 0.5s; }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <h1 style="color:var(--pink); font-size: 32px;">CLASH TON</h1>
-    <p id="status-text">Booting...</p>
+    <h1 style="color:var(--pink); font-size: 32px; margin:0;">CLASH TON</h1>
+    <p id="l-text" style="font-size:12px; opacity:0.6;">Initializing...</p>
 </div>
 
-<div id="app" style="display:none;">
+<div id="app-ui">
     <div id="home" class="section active">
         <div class="card-pro" style="background: var(--pink); color: white; text-align: center;">
             <div style="font-size: 42px; font-weight: 800;" id="txt-balance">0.000 TON</div>
             <div style="font-size: 13px; font-weight: 600;">EARNED BALANCE</div>
         </div>
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
             <div class="card-pro" style="background: var(--blue); text-align: center; padding: 15px; margin:0;">
                 <div style="font-size: 24px; font-weight: 800;" id="txt-daily">0/50</div>
@@ -55,17 +59,20 @@
                 <div style="font-size: 11px;">Referrals</div>
             </div>
         </div>
-        <button class="btn-main" id="ad-button"><i class="fa-solid fa-play-circle"></i> WATCH AD & EARN</button>
+
+        <button class="btn-main" id="ad-trigger">
+            <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
+        </button>
     </div>
 
-    <div id="wallet" class="section">
-        <div class="card-pro"><h2>Wallet</h2><p>Withdrawals process in 24h.</p></div>
-    </div>
-    <div id="logs" class="section">
-        <div class="card-pro"><h2>History</h2><div id="log-list">No data yet.</div></div>
-    </div>
+    <div id="wallet" class="section"><div class="card-pro"><h2>Wallet</h2><p>Withdrawals process in 24h.</p></div></div>
+    <div id="logs" class="section"><div class="card-pro"><h2>History</h2><div id="log-list">No data found.</div></div></div>
     <div id="invite" class="section">
-        <div class="card-pro" style="text-align:center;"><h2>Invite & Earn</h2><button class="btn-main" onclick="copyRef()">COPY LINK</button></div>
+        <div class="card-pro" style="text-align:center;">
+            <h2>Invite Friends</h2>
+            <p>Earn 0.05 TON for each invite.</p>
+            <button class="btn-main" onclick="copyInvite()">COPY INVITE LINK</button>
+        </div>
     </div>
 </div>
 
@@ -77,55 +84,68 @@
 </div>
 
 <script>
-    const fbConfig = {
-        apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
-        authDomain: "gen-lang-client-0766979962.firebaseapp.com",
-        projectId: "gen-lang-client-0766979962",
-        storageBucket: "gen-lang-client-0766979962.firebasestorage.app",
-        messagingSenderId: "327892498777",
-        appId: "1:327892498777:web:49ce0bab8267562f033448"
+    // 1. GÜNCEL CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
+      authDomain: "gen-lang-client-0766979962.firebaseapp.com",
+      databaseURL: "https://gen-lang-client-0766979962-default-rtdb.firebaseio.com",
+      projectId: "gen-lang-client-0766979962",
+      storageBucket: "gen-lang-client-0766979962.firebasestorage.app",
+      messagingSenderId: "327892498777",
+      appId: "1:327892498777:web:49ce0bab8267562f033448"
     };
 
-    firebase.initializeApp(fbConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const tg = window.Telegram.WebApp;
-    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "user_" + Math.floor(Math.random()*9999);
+    
+    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "test_user_123";
     let state = { balance: 0, todayAds: 0, refs: 0 };
 
-    // RichAds: Gerçek Mod (Debug: false)
+    // 2. RichAds Başlatma (Production)
     const richAds = new window.TelegramAdsController();
     richAds.initialize({ pubId: "988708", appId: "7273", debug: false });
 
-    async function init() {
-        const status = document.getElementById('status-text');
-        try {
-            // Veritabanı için 3 saniye limit. Gelmezse demo verilerle açılır.
-            const timeout = new Promise((_, r) => setTimeout(() => r(new Error("TO")), 3000));
-            const doc = await Promise.race([db.collection('users').doc(uid).get(), timeout]);
-            
-            if(doc && doc.exists()) state = doc.data();
-            else await db.collection('users').doc(uid).set(state);
-            status.textContent = "Synced!";
-        } catch(e) {
-            status.textContent = "Offline Mode";
-        }
+    // --- LOADING ÇÖZÜCÜ ---
+    function startApp() {
+        // Firebase'i beklemeden 1.5 saniye sonra uygulamayı aç
+        setTimeout(() => {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 500);
+        }, 1500);
         
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        updateUI();
+        fetchData();
+    }
+
+    async function fetchData() {
+        try {
+            // Arka planda veriyi çek, gelirse UI'ı güncelle
+            const doc = await db.collection('users').doc(uid).get();
+            if (doc.exists()) {
+                state = doc.data();
+                updateUI();
+            } else {
+                await db.collection('users').doc(uid).set(state);
+            }
+        } catch (e) {
+            console.warn("Firestore Error:", e.message);
+        }
     }
 
     function updateUI() {
         document.getElementById('txt-balance').textContent = (state.balance || 0).toFixed(3) + " TON";
         document.getElementById('txt-daily').textContent = (state.todayAds || 0) + "/50";
-        document.getElementById('txt-refs').textContent = state.refs || 0;
-        document.getElementById('ad-button').disabled = (state.todayAds >= 50);
+        document.getElementById('txt-refs').textContent = (state.refs || 0);
+        document.getElementById('ad-trigger').disabled = (state.todayAds >= 50);
     }
 
-    document.getElementById('ad-button').onclick = function() {
+    // --- REKLAM TETİKLEYİCİ ---
+    document.getElementById('ad-trigger').onclick = function() {
         const btn = this;
         btn.disabled = true;
-        btn.innerHTML = "LOADING...";
+        btn.innerHTML = "LOADING AD...";
 
         richAds.triggerInterstitialVideo()
             .then(() => {
@@ -133,16 +153,19 @@
                 state.todayAds += 1;
                 updateUI();
                 db.collection('users').doc(uid).set(state, {merge:true});
-                db.collection('watchads').add({ uid, date: new Date(), type: 'reward' });
-                tg.showPopup({ message: "Success! +0.005 TON" });
+                db.collection('watchads').add({ uid, date: new Date(), amt: 0.005 });
+                tg.showPopup({ message: "Success! +0.005 TON earned." });
             })
-            .catch(() => tg.showAlert("Ad not ready. Try again in a bit."))
+            .catch(() => {
+                tg.showAlert("Ad not ready yet. Please try again.");
+            })
             .finally(() => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-play-circle"></i> WATCH AD & EARN';
             });
-    };
+    }
 
+    // --- NAV & INVITE ---
     function nav(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -150,13 +173,14 @@
         btn.classList.add('active');
     }
 
-    function copyRef() {
+    function copyInvite() {
         const link = "https://t.me/ClashTonAdsBot?start=" + uid;
         navigator.clipboard.writeText(link);
-        tg.showAlert("Link Copied!");
+        tg.showAlert("Link copied!");
     }
 
-    window.onload = init;
+    // Uygulamayı Başlat
+    window.onload = startApp;
     tg.ready();
     tg.expand();
 </script>
