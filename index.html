@@ -3,129 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Clash Ton Pro</title>
-    
+    <title>Clash Ton - Minimal</title>
+
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- RichAds SDK -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
     <style>
         :root {
-            --primary: #00f2ff;
-            --secondary: #7000ff;
-            --bg: #0a0a0c;
-            --card: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
+            --bg: #000000;
+            --card: #111111;
             --text: #ffffff;
+            --accent: #ffffff;
+            --border: #222222;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
         /* Loader */
-        #ad-loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        #ad-loader { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 30px; height: 30px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .container { padding: 20px; height: 100%; display: flex; flex-direction: column; padding-bottom: 100px; overflow-y: auto; }
-        .header { margin-bottom: 25px; text-align: center; }
-        
-        /* Stats Card */
-        .stats-box { background: var(--card); border: 1px solid var(--border); border-radius: 25px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
-        .stat-val { font-size: 18px; font-weight: 800; display: block; color: var(--primary); }
+        .container { padding: 25px; height: 100%; display: flex; flex-direction: column; padding-bottom: 100px; }
 
-        /* Main Watch Area */
-        .main-card { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
-        .btn-watch { width: 100%; padding: 20px; background: linear-gradient(90deg, var(--primary), var(--secondary)); border: none; border-radius: 20px; color: white; font-weight: 800; font-size: 18px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .btn-watch:disabled { background: #333; color: #666; }
+        /* Stats */
+        .header { margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .balance-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-val { font-size: 36px; font-weight: 700; }
 
-        /* Withdraw Form */
-        .input-group { width: 100%; margin-top: 20px; }
-        .input-group input { width: 100%; padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; color: white; outline: none; }
-        .withdraw-info { font-size: 12px; color: #666; margin-top: 10px; }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 30px; }
+        .stat-small { flex: 1; }
+        .stat-small span { display: block; font-size: 10px; color: #666; }
+        .stat-small b { font-size: 16px; }
 
-        /* Nav */
-        .nav { position: fixed; bottom: 20px; left: 15px; right: 15px; background: rgba(20,20,20,0.8); border: 1px solid var(--border); border-radius: 25px; display: grid; grid-template-columns: repeat(3, 1fr); padding: 12px; backdrop-filter: blur(15px); }
-        .nav-item { border: none; background: none; color: #666; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 600; }
-        .nav-item.active { color: var(--primary); }
-        .page { display: none; animation: fadeIn 0.3s; }
+        /* Main Area */
+        .content-area { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .btn-black { width: 100%; padding: 20px; background: var(--text); color: var(--bg); border: none; border-radius: 0px; font-weight: 800; font-size: 16px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-black:disabled { background: #333; color: #666; }
+        .btn-outline { width: 100%; padding: 15px; background: transparent; color: var(--text); border: 1px solid var(--text); margin-top: 10px; font-weight: 600; cursor: pointer; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 11px; color: #666; margin-bottom: 8px; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--border); color: white; border-radius: 0; outline: none; }
+
+        /* Navigation */
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(3, 1fr); padding: 15px 0; }
+        .nav-item { border: none; background: none; color: #444; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; font-weight: 600; text-transform: uppercase; }
+        .nav-item.active { color: var(--text); }
+        .nav-item i { font-size: 18px; }
+
+        .page { display: none; animation: fadeIn 0.2s; height: 100%; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="ad-loader"><div class="spinner"></div><p style="margin-top:15px; color:var(--primary);">REKLAM YÜKLENİYOR...</p></div>
+<div id="ad-loader"><div class="spinner"></div></div>
 
 <div class="container">
     <div id="p-home" class="page active">
         <div class="header">
-            <h1 style="font-size: 24px; font-weight: 800;">CLASH <span style="color:var(--primary)">TON</span></h1>
-        </div>
-        
-        <div class="stats-box">
-            <div class="stat-item">
-                <span class="stat-label">Bakiye</span>
-                <span class="stat-val" id="st-bal">0.000</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Günlük Reklam</span>
-                <span class="stat-val" id="st-ads">0/50</span>
-            </div>
+            <span class="balance-label">Mevcut Bakiye</span>
+            <div class="balance-val" id="st-bal">0.0000</div>
+            <span style="font-size: 12px; color: #444;">TON Coin</span>
         </div>
 
-        <div class="main-card">
-            <i class="fa-solid fa-play-circle" style="font-size: 80px; color: var(--primary); margin-bottom: 20px;"></i>
-            <h2 style="margin-bottom: 10px;">İzle ve Kazan</h2>
-            <p style="font-size: 12px; color: #888; margin-bottom: 30px;">Kısa bir video izleyerek anında TON kazanın.</p>
-            <button class="btn-watch" id="btn-watch">REKLAM İZLE</button>
+        <div class="stats-row">
+            <div class="stat-small"><span>Limit</span><b id="st-ads">0/50</b></div>
+            <div class="stat-small"><span>Referans</span><b id="st-refs">0</b></div>
+        </div>
+
+        <div class="content-area">
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.6;">
+                Reklam izleyerek bakiye biriktirin. Her reklam 0.005 TON değerindedir.
+            </p>
+            <button class="btn-black" id="btn-watch">REKLAMI BAŞLAT</button>
         </div>
     </div>
 
     <div id="p-withdraw" class="page">
-        <h2 style="margin-bottom: 20px;">Para Çekme</h2>
-        <div class="main-card" style="justify-content: flex-start;">
-            <div class="stat-label">Toplam Bakiye</div>
-            <div class="stat-val" style="font-size: 32px;" id="wd-bal">0.000 TON</div>
-            
-            <div class="input-group">
-                <label style="font-size: 12px; margin-bottom: 8px; display: block;">TON Cüzdan Adresi</label>
-                <input type="text" id="wallet-addr" placeholder="UQ... veya EQ...">
-            </div>
-            <p class="withdraw-info">Min. Çekim: 0.5 TON | Komisyon: 0.01 TON</p>
-            <button class="btn-watch" style="margin-top: 20px;" onclick="handleWithdraw()">ÇEKİM TALEBİ</button>
+        <div class="header"><h2>ÇEKİM TALEBİ</h2></div>
+
+        <div class="input-group">
+            <label>Cüzdan Adresi (TON)</label>
+            <input type="text" id="wd-addr" placeholder="UQ...">
         </div>
+
+        <div class="input-group">
+            <label>Çekilecek Miktar (Min 0.5)</label>
+            <input type="number" id="wd-amount" step="0.1" placeholder="0.5">
+        </div>
+
+        <div style="background:var(--card); padding: 15px; margin-bottom: 20px; font-size: 12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>Net Bakiye:</span><span id="wd-net-bal">0.0000 TON</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:#666;">
+                <span>İşlem Ücreti:</span><span>0.01 TON</span>
+            </div>
+        </div>
+
+        <button class="btn-black" onclick="handleWithdraw()">TALEBİ GÖNDER</button>
     </div>
 
-    <div id="p-more" class="page">
-        <h2 style="margin-bottom: 20px;">Daha Fazla</h2>
-        <div class="main-card" style="gap: 15px;">
-            <div style="text-align: center;">
-                <h3 style="color: var(--primary);">Referans Sistemi</h3>
-                <p style="font-size: 12px; color: #888; margin-top: 5px;">Arkadaşını davet et, kazancından %10 bonus al!</p>
-            </div>
-            <div class="stats-box" style="width: 100%; margin: 10px 0;">
-                <div class="stat-item"><span class="stat-label">Ref Sayısı</span><span class="stat-val" id="st-refs">0</span></div>
-                <div class="stat-item"><span class="stat-label">Ref Kazancı</span><span class="stat-val" id="st-ref-earn">0.00</span></div>
-            </div>
-            <button class="btn-watch" onclick="copyRef()">LİNKİ KOPYALA</button>
+    <div id="p-ref" class="page">
+        <div class="header"><h2>REFERANS</h2></div>
+        <p style="font-size: 13px; color: #666; margin-bottom: 30px;">Davet ettiğiniz her kullanıcı için bakiye kazanırsınız.</p>
+
+        <div style="background:var(--card); padding: 20px; border: 1px solid var(--border); margin-bottom: 20px;">
+            <span class="balance-label">Toplam Ref Kazancı</span>
+            <div style="font-size: 24px; font-weight: 700;" id="st-ref-earn">0.000</div>
         </div>
+
+        <button class="btn-black" onclick="copyRef()">DAVET LİNKİNİ KOPYALA</button>
     </div>
 </div>
 
 <nav class="nav">
-    <div class="nav-item active" onclick="nav('p-home', this)"><i class="fa-solid fa-house"></i><span>Ana Sayfa</span></div>
-    <div class="nav-item" onclick="nav('p-withdraw', this)"><i class="fa-solid fa-wallet"></i><span>Çekim</span></div>
-    <div class="nav-item" onclick="nav('p-more', this)"><i class="fa-solid fa-share-nodes"></i><span>Referans</span></div>
+    <div class="nav-item active" onclick="nav('p-home', this)"><i class="fa-solid fa-play"></i><span>KAZAN</span></div>
+    <div class="nav-item" onclick="nav('p-withdraw', this)"><i class="fa-solid fa-wallet"></i><span>CÜZDAN</span></div>
+    <div class="nav-item" onclick="nav('p-ref', this)"><i class="fa-solid fa-users"></i><span>REF</span></div>
 </nav>
 
 <script>
-    // 1. Firebase Config
+    // ---------- Telegram Başlat ----------
+    const tg = window.Telegram.WebApp;
+    tg.ready(); // WebApp'in hazır olduğunu bildir
+    tg.expand();
+
+    // ---------- Firebase ----------
     const firebaseConfig = {
         apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
         authDomain: "gen-lang-client-0766979962.firebaseapp.com",
@@ -136,78 +149,96 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const tg = window.Telegram.WebApp;
-    tg.expand();
 
-    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_test";
+    // Kullanıcı ID’si (Telegram ID yoksa test için dev_user)
+    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
     let state = { balance: 0, todayAds: 0, refs: 0, refEarn: 0 };
 
-    // 2. RichAds Init
-    const richads = new window.TelegramAdsController();
-    richads.initialize({ pubId: "988708", appId: "7273", debug: false });
+    // ---------- RichAds ----------
+    const ads = new TelegramAdsController();
+    ads.initialize({ pubId: "988708", appId: "7273", debug: true }); // debug açık, sorunları konsolda gör
 
-    // 3. Main Logic
+    let adsReady = false;
+
+    // Reklam havuzu hazır olduğunda butonu aktifleştir
+    ads.onReady(() => {
+        adsReady = true;
+        updateUI();
+    });
+
+    // ---------- Veritabanı ve UI ----------
     async function init() {
         const doc = await db.collection('users').doc(uid).get();
-        if(doc.exists()) state = doc.data();
+        if (doc.exists) state = doc.data();
         else await db.collection('users').doc(uid).set(state);
-        
-        // Referans kontrolü (Start parametresi varsa)
-        const urlParams = new URLSearchParams(window.location.search);
-        const refId = urlParams.get('start');
-        if(refId && refId !== uid && !doc.exists()) {
-            db.collection('users').doc(refId).update({
-                refs: firebase.firestore.FieldValue.increment(1)
-            });
-        }
         updateUI();
     }
 
     function updateUI() {
         document.getElementById('st-bal').innerText = state.balance.toFixed(4);
-        document.getElementById('wd-bal').innerText = state.balance.toFixed(4) + " TON";
+        document.getElementById('wd-net-bal').innerText = state.balance.toFixed(4) + " TON";
         document.getElementById('st-ads').innerText = state.todayAds + "/50";
         document.getElementById('st-refs').innerText = state.refs || 0;
-        document.getElementById('st-ref-earn').innerText = (state.refEarn || 0).toFixed(3);
-        document.getElementById('btn-watch').disabled = state.todayAds >= 50;
+        document.getElementById('st-ref-earn').innerText = (state.refEarn || 0).toFixed(4);
+
+        const btn = document.getElementById('btn-watch');
+        if (!adsReady) {
+            btn.disabled = true;
+            btn.innerText = "REKLAM YÜKLENİYOR…";
+        } else if (state.todayAds >= 50) {
+            btn.disabled = true;
+            btn.innerText = "GÜNLÜK LİMİT DOLDU";
+        } else {
+            btn.disabled = false;
+            btn.innerText = "REKLAMI BAŞLAT";
+        }
     }
 
-    // 4. Watch & Earn
-    document.getElementById('btn-watch').onclick = async function() {
-        const loader = document.getElementById('ad-loader');
-        loader.style.display = 'flex';
-        
+    // ---------- Reklam İzleme ----------
+    document.getElementById('btn-watch').onclick = async function () {
+        if (!adsReady) {
+            tg.showAlert("Reklam henüz yüklenmedi, lütfen biraz bekleyin.");
+            return;
+        }
+        if (state.todayAds >= 50) {
+            tg.showAlert("Bugünlük reklam hakkınız doldu.");
+            return;
+        }
+
+        document.getElementById('ad-loader').style.display = 'flex';
         try {
-            await richads.triggerInterstitialVideo();
+            // Interstitial video göster
+            await ads.triggerInterstitialVideo();
+            // Başarıyla izlendi, ödül ver
             state.balance += 0.005;
             state.todayAds += 1;
             await db.collection('users').doc(uid).update(state);
             updateUI();
-            tg.showPopup({ message: "+0.005 TON Kazandınız!" });
-        } catch(e) {
-            tg.showAlert("Reklam hazır değil, lütfen biraz bekleyin.");
+        } catch (e) {
+            console.error("Reklam hatası:", e);
+            tg.showAlert("Reklam şu an hazır değil. Lütfen tekrar deneyin.");
         } finally {
-            loader.style.display = 'none';
+            document.getElementById('ad-loader').style.display = 'none';
         }
     };
 
-    // Withdraw Handle
+    // ---------- Çekim ----------
     function handleWithdraw() {
-        const addr = document.getElementById('wallet-addr').value;
-        if(state.balance < 0.5) return tg.showAlert("Yetersiz bakiye. Min: 0.5 TON");
-        if(addr.length < 10) return tg.showAlert("Geçerli bir TON adresi girin.");
-        
+        const addr = document.getElementById('wd-addr').value.trim();
+        const amount = parseFloat(document.getElementById('wd-amount').value);
+
+        if (!addr || addr.length < 10) return tg.showAlert("Geçerli bir TON adresi girin.");
+        if (isNaN(amount) || amount < 0.5) return tg.showAlert("Minimum çekim 0.5 TON.");
+        if (amount > state.balance) return tg.showAlert("Yetersiz bakiye.");
+
         db.collection('withdrawals').add({
-            uid: uid,
-            address: addr,
-            amount: state.balance,
-            date: new Date(),
-            status: 'pending'
+            uid, addr, amount, date: new Date(), status: 'pending'
+        }).then(() => {
+            tg.showPopup({ message: "Çekim talebiniz işleme alındı." });
         });
-        
-        tg.showPopup({ message: "Çekim talebiniz alındı. 24 saat içinde kontrol edilecektir." });
     }
 
+    // ---------- Gezinti ----------
     function nav(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -215,12 +246,14 @@
         el.classList.add('active');
     }
 
+    // ---------- Referans ----------
     function copyRef() {
         const link = "https://t.me/ClashTonAdsBot?start=" + uid;
         navigator.clipboard.writeText(link);
-        tg.showAlert("Referans linkiniz kopyalandı!");
+        tg.showAlert("Link kopyalandı.");
     }
 
+    // ---------- Başlat ----------
     window.onload = init;
 </script>
 
