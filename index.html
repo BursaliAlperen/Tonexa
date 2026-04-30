@@ -3,212 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Clash Ton ADS - Pro</title>
+    <title>Clash Ton ADS - Ultra Pro</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-    <script>
-        // SDK Başlatma
-        window.richAdsController = new TelegramAdsController();
-        window.richAdsController.initialize({ pubId: "988708", appId: "7273", debug: false });
-    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
-        :root { --pink: #FF7EB9; --blue: #70D6FF; --yellow: #FFD60A; --black: #000000; --bg: #0c0c0c; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: 'Fredoka', sans-serif; margin: 0; padding: 20px 15px 120px 15px; background-color: var(--bg); color: var(--black); overflow-x: hidden; }
+        :root {
+            --pink: #FF7EB9; --blue: #70D6FF; --yellow: #FFD60A; --black: #000000; --bg: #121212;
+        }
 
-        .pro-card { background: white; border: 4px solid var(--black); box-shadow: 6px 6px 0px var(--black); border-radius: 20px; padding: 20px; margin-bottom: 20px; transition: 0.2s; }
-        .section { display: none; animation: fadeIn 0.3s ease; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Fredoka', sans-serif; margin: 0; padding: 20px 15px 120px 15px; background-color: var(--bg); color: var(--black); }
+
+        /* Pro Kawaii UI: Kalın Siyah Çerçeveler */
+        .card-pro { 
+            background: white; border: 4px solid var(--black); 
+            box-shadow: 6px 6px 0px var(--black); border-radius: 20px; 
+            padding: 20px; margin-bottom: 20px; 
+        }
+
+        .section { display: none; }
         .section.active { display: block; }
 
-        .btn-main { width: 100%; padding: 22px; background: var(--yellow); border: 4px solid var(--black); box-shadow: 6px 6px 0px var(--black); border-radius: 20px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .btn-main { 
+            width: 100%; padding: 22px; background: var(--yellow); 
+            border: 4px solid var(--black); box-shadow: 6px 6px 0px var(--black); 
+            border-radius: 20px; font-size: 22px; font-weight: 700; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; 
+        }
         .btn-main:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--black); }
-        .btn-main:disabled { background: #555 !important; color: #888; border-color: #333; box-shadow: 3px 3px 0px #000; }
+        .btn-main:disabled { background: #555; color: #888; border-color: #333; }
 
         /* Navbar */
-        .nav-bar { position: fixed; bottom: 20px; left: 15px; right: 15px; display: grid; grid-template-columns: repeat(4, 1fr); background: #fefefe; border: 4px solid var(--black); border-radius: 25px; box-shadow: 6px 6px 0px var(--black); padding: 12px; z-index: 1000; }
-        .nav-btn { border: none; background: none; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #999; }
+        .nav-bar { 
+            position: fixed; bottom: 20px; left: 15px; right: 15px; 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            background: white; border: 4px solid var(--black); 
+            border-radius: 25px; box-shadow: 6px 6px 0px var(--black); 
+            padding: 12px; z-index: 1000; 
+        }
+        .nav-btn { border: none; background: none; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 5px; color: #999; }
         .nav-btn.active { color: var(--pink); }
-        .nav-btn i { font-size: 22px; }
 
-        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <h1 style="color:var(--pink); font-size: 32px; letter-spacing: 2px;">CLASH TON</h1>
-        <p id="l-status">Connecting Firestore...</p>
+<div id="loading-screen">
+    <h1 style="color:var(--pink); font-size: 32px;">CLASH TON</h1>
+    <p>Loading Assets...</p>
+</div>
+
+<div id="home" class="section active">
+    <div class="card-pro" style="background: var(--pink); color: white; text-align: center;">
+        <div style="font-size: 42px; font-weight: 800;" id="txt-balance">0.000 TON</div>
+        <div style="font-size: 13px; font-weight: 600;">EARNED BALANCE</div>
     </div>
-
-    <div id="home" class="section active">
-        <div class="pro-card" style="background: var(--pink); color: white; text-align: center; padding: 30px 20px;">
-            <div style="font-size: 44px; font-weight: 800;" id="txt-balance">0.000 TON</div>
-            <div style="font-size: 14px; font-weight: 600; opacity: 0.9;">EARNED BALANCE</div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div class="card-pro" style="background: var(--blue); text-align: center; padding: 15px; margin:0;">
+            <div style="font-size: 24px; font-weight: 800;" id="txt-daily">0/50</div>
+            <div style="font-size: 11px;">Daily Ads</div>
         </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-            <div class="pro-card" style="background: var(--blue); text-align: center; padding: 18px; margin:0;">
-                <div style="font-size: 26px; font-weight: 800;" id="txt-daily">0/50</div>
-                <div style="font-size: 12px; font-weight: 600;">Daily Ads</div>
-            </div>
-            <div class="pro-card" style="background: var(--yellow); text-align: center; padding: 18px; margin:0;">
-                <div style="font-size: 26px; font-weight: 800;" id="txt-refs">0</div>
-                <div style="font-size: 12px; font-weight: 600;">Referrals</div>
-            </div>
-        </div>
-
-        <button class="btn-main" id="btn-watch">
-            <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
-        </button>
-    </div>
-
-    <div id="wallet" class="section">
-        <div class="pro-card">
-            <h2 style="margin:0 0 20px 0;">Withdraw</h2>
-            <div style="background:#f0f0f0; padding:15px; border-radius:15px; margin-bottom:15px; border:2px solid #000;">
-                <p style="margin:0; font-size:12px;">Minimum Amount</p>
-                <b style="font-size:18px;">0.500 TON</b>
-            </div>
-            <input type="text" id="w-address" placeholder="Enter TON Address" style="width:100%; padding:15px; border:3px solid #000; border-radius:15px; margin-bottom:15px; font-family:inherit;">
-            <button class="btn-main" style="background:var(--blue); font-size:18px;">CONFIRM WITHDRAW</button>
+        <div class="card-pro" style="background: var(--yellow); text-align: center; padding: 15px; margin:0;">
+            <div style="font-size: 24px; font-weight: 800;" id="txt-refs">0</div>
+            <div style="font-size: 11px;">Referrals</div>
         </div>
     </div>
 
-    <div id="logs" class="section">
-        <div class="pro-card">
-            <h2 style="margin:0 0 15px 0;">Recent Activity</h2>
-            <div id="log-list" style="max-height: 350px; overflow-y: auto;">
-                <p style="text-align:center; color:#888;">No history found.</p>
-            </div>
-        </div>
-    </div>
+    <button class="btn-main" id="ad-button">
+        <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
+    </button>
+</div>
 
-    <div id="invite" class="section">
-        <div class="pro-card" style="text-align:center; padding: 40px 20px;">
-            <i class="fa-solid fa-users" style="font-size: 60px; color: var(--pink); margin-bottom: 20px;"></i>
-            <h2 style="margin:0 0 10px 0;">Referral System</h2>
-            <p style="font-size:14px; margin-bottom:25px;">Invite friends and get <br><b>0.050 TON</b> for each friend!</p>
-            <button class="btn-main" onclick="copyRef()">COPY LINK</button>
-        </div>
-    </div>
+<div id="wallet" class="section"><div class="card-pro"><h2>Wallet</h2><p>Minimum 0.5 TON</p></div></div>
+<div id="logs" class="section"><div class="card-pro"><h2>Activity</h2><p>No history.</p></div></div>
+<div id="invite" class="section"><div class="card-pro"><h2>Invite</h2><p>Earn 0.05 TON per friend.</p></div></div>
 
-    <div class="nav-bar">
-        <div class="nav-btn active" onclick="nav('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
-        <div class="nav-btn" onclick="nav('wallet', this)"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
-        <div class="nav-btn" onclick="nav('logs', this)"><i class="fa-solid fa-history"></i><span>Logs</span></div>
-        <div class="nav-btn" onclick="nav('invite', this)"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></div>
-    </div>
+<div class="nav-bar">
+    <button class="nav-btn active" onclick="nav('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="nav-btn" onclick="nav('wallet', this)"><i class="fa-solid fa-wallet"></i><span>Wallet</span></button>
+    <button class="nav-btn" onclick="nav('logs', this)"><i class="fa-solid fa-list"></i><span>Logs</span></button>
+    <button class="nav-btn" onclick="nav('invite', this)"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></button>
+</div>
 
-    <script>
-        const fbConfig = {
-            apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
-            authDomain: "gen-lang-client-0766979962.firebaseapp.com",
-            projectId: "gen-lang-client-0766979962",
-            storageBucket: "gen-lang-client-0766979962.firebasestorage.app",
-            messagingSenderId: "327892498777",
-            appId: "1:327892498777:web:49ce0bab8267562f033448"
-        };
+<script>
+    // 1. Firebase & TG Setup
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
+        authDomain: "gen-lang-client-0766979962.firebaseapp.com",
+        projectId: "gen-lang-client-0766979962",
+        storageBucket: "gen-lang-client-0766979962.firebasestorage.app",
+        messagingSenderId: "327892498777",
+        appId: "1:327892498777:web:49ce0bab8267562f033448"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const tg = window.Telegram.WebApp;
+    let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
+    let state = { balance: 0, todayAds: 0, refs: 0 };
 
-        firebase.initializeApp(fbConfig);
-        const db = firebase.firestore();
-        const tg = window.Telegram.WebApp;
-        let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_test";
-        let state = { balance: 0, todayAds: 0, refs: 0 };
+    // 2. RichAds Dokümantasyonuna Göre Controller Başlatma
+    const richadsController = new window.TelegramAdsController();
+    richadsController.initialize({
+        pubId: "988708",
+        appId: "7273",
+        debug: true // Hataları konsolda görmek için true kalsın
+    });
 
-        // --- INIT DATA ---
-        async function initData() {
-            try {
-                const doc = await db.collection('users').doc(uid).get();
-                if (doc.exists()) state = doc.data();
-                else await db.collection('users').doc(uid).set(state);
-            } catch (e) { console.log("Firestore Offline"); }
-            
-            document.getElementById('loader').style.display = 'none';
-            updateUI();
-        }
+    // 3. Reklam Tetikleyici (Step 4 Doküman Uyarlaması)
+    const adButton = document.getElementById('ad-button');
+    adButton.addEventListener('click', () => {
+        adButton.disabled = true;
+        adButton.innerHTML = "LOADING AD...";
 
-        function updateUI() {
-            document.getElementById('txt-balance').textContent = (state.balance || 0).toFixed(3) + " TON";
-            document.getElementById('txt-daily').textContent = (state.todayAds || 0) + "/50";
-            document.getElementById('txt-refs').textContent = state.refs || 0;
-            
-            if(state.todayAds >= 50) {
-                const b = document.getElementById('btn-watch');
-                b.disabled = true;
-                b.textContent = "LIMIT REACHED";
-            }
-        }
+        richadsController.triggerInterstitialVideo()
+            .then((result) => {
+                // Reklam başarıyla izlendi
+                console.log("Ad Success:", result);
+                giveReward();
+            })
+            .catch((error) => {
+                // Reklam başarısız veya kapatıldı
+                console.log("Ad Error:", error);
+                tg.showAlert("Ad not ready or closed early. Try again in 10s.");
+            })
+            .finally(() => {
+                adButton.disabled = false;
+                adButton.innerHTML = '<i class="fa-solid fa-play-circle"></i> WATCH AD & EARN';
+            });
+    });
 
-        // --- NAVIGATION ---
-        function nav(id, el) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-        }
+    // Ödül Verme Fonksiyonu
+    async function giveReward() {
+        state.balance += 0.005;
+        state.todayAds += 1;
+        updateUI();
+        await db.collection('users').doc(uid).set(state, {merge:true});
+        await db.collection('watchads').add({ uid, date: new Date(), status: 'rewarded' });
+    }
 
-        // --- WATCH AD (PRO SİSTEM) ---
-        async function handleAd() {
-            const btn = document.getElementById('btn-watch');
-            const originalText = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> LOADING...';
+    async function init() {
+        const doc = await db.collection('users').doc(uid).get();
+        if(doc.exists()) state = doc.data();
+        document.getElementById('loading-screen').style.display = 'none';
+        updateUI();
+    }
 
-            try {
-                // Reklamı Tetikle
-                await window.richAdsController.triggerInterstitialVideo();
-                
-                // Reklam Başarılıysa Ödül Ver
-                state.balance += 0.005;
-                state.todayAds += 1;
-                
-                // Firestore Güncelle
-                await db.collection('users').doc(uid).update(state);
-                await db.collection('watchads').add({
-                    uid: uid,
-                    status: "success",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+    function updateUI() {
+        document.getElementById('txt-balance').textContent = (state.balance || 0).toFixed(3) + " TON";
+        document.getElementById('txt-daily').textContent = (state.todayAds || 0) + "/50";
+        document.getElementById('txt-refs').textContent = state.refs || 0;
+    }
 
-                updateUI();
-                tg.showPopup({ message: "Reward Claimed: +0.005 TON" });
-                
-            } catch (err) {
-                // Reklam Hazır Değilse Logla ve Bilgi Ver
-                await db.collection('watchads').add({
-                    uid: uid,
-                    status: "failed",
-                    error: "Ad Not Ready",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                tg.showAlert("Ad not ready yet. Please try again in 10-20 seconds.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
+    function nav(id, btn) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
 
-        function copyRef() {
-            const link = "https://t.me/ClashTonAdsBot?start=" + uid;
-            navigator.clipboard.writeText(link);
-            tg.showAlert("Referral link copied!");
-        }
-
-        document.getElementById('btn-watch').onclick = handleAd;
-        window.onload = initData;
-        tg.ready();
-        tg.expand();
-    </script>
+    window.onload = init;
+    tg.ready();
+    tg.expand();
+</script>
 </body>
 </html>
