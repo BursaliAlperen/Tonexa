@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Clash ton Ads - Earn Money</title>
+    <title>@ClashTonAdsBot - Earn Money</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -109,7 +109,7 @@
         <div id="preloader-percentage">0%</div>
     </div>
     <div id="preloader-footer">
-        <a href="https://t.me/BasicTouchPro" target="_blank">@BasicToucPro</a>
+        <a href="https://t.me/ClashTonAdsBot" target="_blank">@ClashTonAdsBot</a>
     </div>
     
     <div id="ad-loader-overlay"><div class="loader"></div><span>Loading Ad...</span></div>
@@ -170,12 +170,12 @@
         const config = {
             BOT_TOKEN: '8613345300:AAGXafQ9ZIY2lj5VauERMOGPktq2KfMxK8E', 
             ADMIN_IDS: [], // Admin ID'lerini buraya ekleyebilirsin [123456, 78910] şeklinde
-            BOT_USERNAME: '#', // Bot kullanıcı adını gir
+            BOT_USERNAME: 'ClashTonAdsBot', // Bot kullanıcı adını gir
             TELEGRAM_CHANNEL_LINK: 'https://t.me/BasicTouchPro',
             ADMIN_SUPPORT_LINK: 'https://t.me/BasicTouch',
             AD_REWARD: 0.001,
             DAILY_AD_LIMIT: 15,
-            MINIMUM_WITHDRAWAL: 0.10,
+            MINIMUM_WITHDRAWAL: 0.50,
             COOLDOWN_MINUTES: 30,
             withdrawalMethods: [
                 'Tonkeeper Wallet',
@@ -191,14 +191,14 @@
                 messagingSenderId: "327892498777",
                 appId: "1:327892498777:web:49ce0bab8267562f033448"
             },
-            REFERRAL_REWARD: 0.01,
+            REFERRAL_REWARD: 0.05,
             bonusTasks: [
                 { id: 'bonus_01', title: 'আমাদের চ্যানেল ভিজিট করুন', link: 'https://t.me/BasicTouchPro', reward: 0.5, duration: 10 },
                 { id: 'bonus_02', title: 'অন্য অ্যাপটি দেখুন', link: 'https://t.me/BasicTouchProBot', reward: 0.01, duration: 10 }
             ],
             welcomeNotice: {
-                title: "Welcome!",
-                message: `Please follow the rules to ensure you receive your payment.\n\n💰 Reward per Ad: 0.001 TON\n💝 After watching 15 ads, there is a 30-minute break.\n✅ 100% Payment Guarantee\n💸 Withdraw via Tonkeeper, Binance UID or Email\n🔥 Minimum withdrawal is only 0.10 TON\n\n⛔ IMPORTANT RULES ⛔\n- Use mobile data for tasks. Do not use WiFi.\n- After each break, change your IP address. Simply turn Airplane Mode ON and then OFF.\n- Do NOT use any free or paid VPN.\n- Watch the complete guide video on our Telegram channel before starting.\n\nFollowing these rules is mandatory to get paid. Join our Telegram channel for updates and support! ✅`
+                title: "Welcome to @ClashTonAdsBot!",
+                message: `Please follow the rules to ensure you receive your payment.\n\n💰 Reward per Ad: 0.001 TON\n💸 Minimum withdrawal is 0.50 TON\n🔓 NO REFERRALS REQUIRED for withdrawal!\n⏳ Withdrawal requests are pending. It takes up to 72 hours.\n\n⛔ IMPORTANT RULES ⛔\n- Use mobile data for tasks. Do not use WiFi.\n- After each break, change your IP address. Simply turn Airplane Mode ON and then OFF.\n- Do NOT use any free or paid VPN.\n- Watch the complete guide video on our Telegram channel before starting.\n\nFollowing these rules is mandatory to get paid. Join our Telegram channel for updates and support! ✅`
             }
         };
 
@@ -333,10 +333,11 @@
                 const results = await Promise.all(promises);
                 if (results.some(r => r.ok)) {
                     state.totalEarning -= amount;
-                    const pendingUntil = new Date().getTime() + (2 * 60 * 60 * 1000); // 2 hours from now
+                    // 72 Saat Bekleme Süresi Eklendi
+                    const pendingUntil = new Date().getTime() + (72 * 60 * 60 * 1000); // 72 hours from now
                     state.withdrawalHistory.unshift({ method, number: accountNumber, amount, date: new Date().toISOString(), status: 'Pending', pendingUntil });
                     saveState(); updateUI(); closeModal('withdrawModal'); withdrawForm.reset();
-                    safeTgAlert('Your withdrawal request has been sent and is now pending. It will be processed within 2 hours.');
+                    safeTgAlert('Withdrawal requests are pending. It takes up to 72 hours.');
                     safeTgAction(tg => tg.HapticFeedback.notificationOccurred('success'));
                 } else { throw new Error(JSON.stringify(results)); }
             } catch (error) { console.error("Withdrawal Error:", error); safeTgAlert('Failed to send your request. Please try again later.'); } 
