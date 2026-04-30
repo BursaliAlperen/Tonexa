@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>@ClashTonAdsBot - Earn Money</title>
+    <title>@ClashTonAdsBot - Earn TON</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
     </script>
-    <script src="https://telegram.org/js/telegram-web-app.js">
+    <script src="https://telegram.org/js/telegram-web-app.js?56">
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -19,25 +19,27 @@
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js">
     </script>
     <script>
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
+        // RichAds Controller global olarak oluşturuluyor
+        window.richAdsController = new TelegramAdsController();
+        window.richAdsController.initialize({
             pubId: "988708",
             appId: "7273",
+            debug: false // Debug kapalı, gerçek reklamlar
         });
     </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap');
         :root {
-            --primary-color: #0A84FF;
-            --primary-color-rgb: 10, 132, 255;
-            --secondary-color: #3395FF;
+            --primary-color: #0088CC;
+            --primary-color-rgb: 0, 136, 204;
+            --secondary-color: #00A8FF;
             --background-color: #000000;
             --card-background: #1C1C1E;
             --text-color: #F5F5F7;
             --text-light: #8E8E93;
             --border-color: #3A3A3C;
-            --glass-bg: rgba(28, 28, 30, 0.8);
+            --glass-bg: rgba(28, 28, 30, 0.85);
         }
 
         * {
@@ -50,11 +52,10 @@
         body {
             font-family: 'Noto Sans', sans-serif;
             margin: 0;
-            padding: 20px 15px 100px 15px;
+            padding: 20px 15px 110px 15px;
             background-color: var(--background-color);
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
-            transition: background-color 0.3s, color 0.3s;
         }
 
         #preloader {
@@ -133,7 +134,6 @@
             font-weight: 700;
             overflow: hidden;
             border: 2px solid var(--card-background);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         #profile-pic img {
             width: 100%;
@@ -148,24 +148,24 @@
         .balance-card {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, #0088CC, #00A8FF);
             color: white;
             padding: 28px;
             border-radius: 24px;
             text-align: center;
             margin-bottom: 20px;
-            box-shadow: 0 12px 25px rgba(var(--primary-color-rgb), 0.2);
+            box-shadow: 0 12px 25px rgba(0, 136, 204, 0.25);
             animation: fadeIn 0.6s ease-out;
         }
         .balance-card::after {
-            content: '\f51e';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+            content: '';
             position: absolute;
             right: -20px;
             bottom: -30px;
-            font-size: 120px;
-            opacity: 0.1;
+            width: 120px;
+            height: 120px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iMjAiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=') no-repeat center/contain;
+            opacity: 0.15;
             transform: rotate(-15deg);
             pointer-events: none;
         }
@@ -186,6 +186,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 10px;
+        }
+        .balance-card .amount img {
+            width: 38px;
+            height: 38px;
         }
 
         .stats-grid {
@@ -198,33 +203,23 @@
             position: relative;
             overflow: hidden;
             background-color: var(--card-background);
-            padding: 20px;
+            padding: 20px 12px;
             border-radius: 18px;
             text-align: center;
             border: 1px solid var(--border-color);
             animation: fadeIn 0.7s ease-out;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-        .stat-item .bg-icon {
-            position: absolute;
-            right: 5px;
-            bottom: 5px;
-            font-size: 50px;
-            opacity: 0.08;
-            color: var(--text-color);
-            pointer-events: none;
         }
         .stat-item .icon {
-            font-size: 28px;
+            font-size: 24px;
             color: var(--primary-color);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .stat-item .value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
         }
         .stat-item .label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-light);
         }
 
@@ -235,7 +230,6 @@
             margin-bottom: 20px;
             border: 1px solid var(--border-color);
             animation: fadeIn 0.8s ease-out;
-            transition: background-color 0.3s, border-color 0.3s;
         }
         .card-title {
             font-size: 18px;
@@ -250,10 +244,10 @@
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.4);
+                box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.5);
             }
             70% {
-                box-shadow: 0 0 0 10px rgba(var(--primary-color-rgb), 0);
+                box-shadow: 0 0 0 12px rgba(var(--primary-color-rgb), 0);
             }
             100% {
                 box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0);
@@ -263,7 +257,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
             padding: 18px;
             border: none;
@@ -278,19 +272,14 @@
         .action-button.pulsing {
             animation: pulse 2s infinite;
         }
-        .action-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(var(--primary-color-rgb), 0.2);
+        .action-button:active:not(:disabled) {
+            transform: scale(0.97);
+            opacity: 0.85;
         }
         .action-button:disabled {
-            background-color: #8E8E93;
+            background-color: #555;
             cursor: not-allowed;
-        }
-        .secondary-button {
-            background-color: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            margin-top: 15px;
+            animation: none;
         }
 
         .nav-bar {
@@ -301,13 +290,12 @@
             max-width: 500px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* reduced from 4 to 3 (no support) */
+            grid-template-columns: repeat(3, 1fr);
             padding: 10px 15px;
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-top: 1px solid var(--border-color);
-            transition: background-color 0.3s, border-color 0.3s;
             z-index: 100;
         }
         .nav-button {
@@ -328,9 +316,9 @@
             transition: all 0.2s ease;
         }
         .nav-button.active,
-        .nav-button:hover {
+        .nav-button:active {
             color: var(--primary-color);
-            background-color: rgba(var(--primary-color-rgb), 0.1);
+            background-color: rgba(var(--primary-color-rgb), 0.15);
         }
         .nav-button i {
             font-size: 20px;
@@ -346,7 +334,6 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.6);
             align-items: flex-end;
-            animation: fadeIn 0.3s ease-out;
         }
         .modal-content {
             background-color: var(--card-background);
@@ -355,18 +342,8 @@
             width: 100%;
             max-width: 500px;
             margin: 0 auto;
-            box-sizing: border-box;
-            animation: slideIn 0.3s ease-out;
             max-height: 80vh;
             overflow-y: auto;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
         }
         .close-button {
             color: #aaa;
@@ -387,7 +364,6 @@
             font-size: 16px;
             background-color: var(--background-color);
             color: var(--text-color);
-            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .modal-content input:focus,
         .modal-content select:focus {
@@ -413,30 +389,30 @@
         }
         .history-details .method-number {
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
         }
         .history-details .date {
             font-size: 12px;
             color: var(--text-light);
         }
         .history-amount {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             text-align: right;
         }
         .history-status {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             padding: 4px 8px;
             border-radius: 8px;
         }
         .history-status.success {
             color: #28a745;
-            background-color: rgba(40, 167, 69, 0.1);
+            background-color: rgba(40, 167, 69, 0.15);
         }
         .history-status.pending {
             color: #fd7e14;
-            background-color: rgba(253, 126, 20, 0.1);
+            background-color: rgba(253, 126, 20, 0.15);
         }
         .no-history {
             text-align: center;
@@ -467,7 +443,7 @@
             width: 100%;
             height: 100%;
             z-index: 5000;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(5px);
             display: none;
             align-items: center;
@@ -484,24 +460,16 @@
             border-bottom-color: var(--primary-color);
             border-radius: 50%;
             display: inline-block;
-            animation: rotation 1s linear infinite;
+            animation: spin 1s linear infinite;
         }
-        @keyframes rotation {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+        #multiAccountModal {
+            align-items: center;
+            justify-content: center;
         }
         #multiAccountModal .modal-content {
             text-align: center;
             border-radius: 20px;
             max-height: initial;
-        }
-        #multiAccountModal {
-            align-items: center;
-            justify-content: center;
         }
     </style>
 </head>
@@ -515,7 +483,8 @@
     </div>
 
     <div id="ad-loader-overlay">
-        <div class="loader"></div><span>Loading Ad...</span>
+        <div class="loader"></div>
+        <span>Loading Ad...</span>
     </div>
 
     <div class="container">
@@ -526,24 +495,22 @@
         <div class="balance-card">
             <h3>Your Balance</h3>
             <div class="amount" id="total-earning">
-                <img src="https://ton.org/download/ton_symbol.png" width="36" height="36" style="vertical-align: middle; margin-right: 8px;">0.000 TON
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ4IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjQiLz4KPHBhdGggZD0iTTI1IDQ1TDQwIDMwTDY1IDQwTDc1IDYwTDUwIDc1TDMwIDYwTDI1IDQ1WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+" alt="TON" style="width:38px;height:38px;">
+                <span>0.000 TON</span>
             </div>
         </div>
         <div class="stats-grid">
             <div class="stat-item">
-                <i class="fa-solid fa-rectangle-ad bg-icon"></i>
                 <div class="icon"><i class="fa-solid fa-rectangle-ad"></i></div>
                 <div class="value" id="ad-count">0</div>
                 <div class="label">Ads Watched</div>
             </div>
             <div class="stat-item">
-                <i class="fa-solid fa-calendar-day bg-icon"></i>
                 <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
                 <div class="value" id="ads-today-count">0 / 50</div>
                 <div class="label">Today's Ads</div>
             </div>
             <div class="stat-item">
-                <i class="fa-solid fa-users bg-icon"></i>
                 <div class="icon"><i class="fa-solid fa-users"></i></div>
                 <div class="value" id="referral-count">0</div>
                 <div class="label">Referrals</div>
@@ -551,8 +518,9 @@
         </div>
         <div class="card">
             <h3 class="card-title">Earn TON</h3>
-            <button class="action-button" id="watch-ad-button"><i class="fa-solid fa-play"></i><span>Watch Ad</span></button>
-            <button class="action-button secondary-button" id="join-channel-button"><i class="fa-brands fa-telegram"></i><span>Join Channel</span></button>
+            <button class="action-button pulsing" id="watch-ad-button">
+                <i class="fa-solid fa-play"></i><span>Watch Ad</span>
+            </button>
         </div>
         <div class="card">
             <h3 class="card-title">Weekly Activity</h3>
@@ -606,7 +574,7 @@
             <h3 class="card-title">Invite Friends</h3>
             <p>Share your referral link with your friends and earn together. You will get a reward for each successful referral.</p>
             <button class="action-button" id="copy-link-button"><i class="fa-solid fa-copy"></i><span>Copy Link</span></button>
-            <button class="action-button secondary-button" id="share-link-button"><i class="fa-solid fa-share-nodes"></i><span>Share Link</span></button>
+            <button class="action-button secondary-button" id="share-link-button" style="background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); margin-top: 15px;"><i class="fa-solid fa-share-nodes"></i><span>Share Link</span></button>
         </div>
     </div>
     <div id="multiAccountModal" class="modal">
@@ -617,21 +585,16 @@
     </div>
 
     <script>
-        // --- CONFIGURATION (UPDATED) ---
+        // --- CONFIGURATION ---
         const config = {
             BOT_TOKEN: '8613345300:AAGXafQ9ZIY2lj5VauERMOGPktq2KfMxK8E',
             ADMIN_IDS: [],
             BOT_USERNAME: 'ClashTonAdsBot',
-            TELEGRAM_CHANNEL_LINK: 'https://t.me/BasicTouchPro',
-            // Support removed, so no admin support link needed (still keep for potential other use)
-            ADMIN_SUPPORT_LINK: 'https://t.me/BasicTouch', 
-            AD_REWARD: 0.005, // changed to 0.005
-            DAILY_AD_LIMIT: 50, // changed to 50
+            AD_REWARD: 0.005,
+            DAILY_AD_LIMIT: 50,
             MINIMUM_WITHDRAWAL: 0.50,
             COOLDOWN_MINUTES: 30,
-            withdrawalMethods: [
-                'TON Wallet (The Open Network)' // only TON network
-            ],
+            withdrawalMethods: ['TON Wallet (The Open Network)'],
             firebase: {
                 apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
                 authDomain: "gen-lang-client-0766979962.firebaseapp.com",
@@ -643,12 +606,12 @@
             REFERRAL_REWARD: 0.05,
             welcomeNotice: {
                 title: "Welcome to @ClashTonAdsBot!",
-                message: `Please follow the rules to ensure you receive your payment.\n\n💰 Reward per Ad: 0.005 TON\n💸 Minimum withdrawal is 0.50 TON\n🔓 NO REFERRALS REQUIRED for withdrawal!\n⏳ Withdrawal requests are pending. It takes up to 72 hours.\n\n⛔ IMPORTANT RULES ⛔\n- Use mobile data for tasks. Do not use WiFi.\n- After each break, change your IP address. Simply turn Airplane Mode ON and then OFF.\n- Do NOT use any free or paid VPN.\n- Watch the complete guide video on our Telegram channel before starting.\n\nFollowing these rules is mandatory to get paid. Join our Telegram channel for updates and support! ✅`
+                message: `Please follow the rules to ensure you receive your payment.\n\n💰 Reward per Ad: 0.005 TON\n💸 Minimum withdrawal is 0.50 TON\n🔓 NO REFERRALS REQUIRED for withdrawal!\n⏳ Withdrawal requests are pending. It takes up to 72 hours.\n\n⛔ IMPORTANT RULES ⛔\n- Use mobile data for tasks. Do not use WiFi.\n- After each break, change your IP address. Simply turn Airplane Mode ON and then OFF.\n- Do NOT use any free or paid VPN.\n\nFollowing these rules is mandatory to get paid. ✅`
             }
         };
 
-        // --- MAIN APP LOGIC ---
         const tg = window.Telegram ? window.Telegram.WebApp : null;
+        const richadsController = window.richAdsController;
 
         let state = {
             totalEarning: 0.0,
@@ -682,8 +645,6 @@
             adLoaderOverlay: document.getElementById('ad-loader-overlay'),
             profilePicEl: document.getElementById('profile-pic'),
             greetingEl: document.getElementById('greeting'),
-            joinChannelButton: document.getElementById('join-channel-button'),
-            // adminContactButton removed since support is gone
             copyLinkButton: document.getElementById('copy-link-button'),
             shareLinkButton: document.getElementById('share-link-button'),
             historyListEl: document.getElementById('history-list'),
@@ -692,14 +653,12 @@
             welcomeMessage: document.getElementById('welcome-message')
         };
 
-        function initDB() {
+        async function initDB() {
             return new Promise((resolve) => {
                 try {
                     const request = indexedDB.open(dbName, 3);
-                    request.onerror = (e) => { console.error("DB Error:", e);
-                        resolve(); };
-                    request.onsuccess = event => { db = event.target.result;
-                        resolve(); };
+                    request.onerror = () => resolve();
+                    request.onsuccess = event => { db = event.target.result; resolve(); };
                     request.onupgradeneeded = event => {
                         let db = event.target.result;
                         if (!db.objectStoreNames.contains('userState')) db.createObjectStore('userState', { keyPath: 'id' });
@@ -715,16 +674,13 @@
             transaction.objectStore('userState').put({ id: 'currentUser', ...state });
         }
 
-        function loadState() {
+        async function loadState() {
             return new Promise(resolve => {
                 if (!db) { resolve(); return; }
                 const request = db.transaction(['userState'], 'readonly').objectStore('userState').get('currentUser');
                 request.onsuccess = () => {
                     if (request.result) {
                         state = { ...state, ...request.result };
-                        if (!state.completedBonusTasks) state.completedBonusTasks = [];
-                        if (!state.rewardedReferrals) state.rewardedReferrals = 0;
-                        if (!state.originalUserId) state.originalUserId = null;
                     }
                     const today = new Date().toLocaleDateString();
                     if (state.lastAdWatchedDate !== today) {
@@ -737,7 +693,7 @@
             });
         }
 
-        function checkIpInDB(ip) {
+        async function checkIpInDB(ip) {
             return new Promise(resolve => {
                 if (!db || !ip) return resolve(false);
                 const request = db.transaction(['appUsage'], 'readonly').objectStore('appUsage').get(ip);
@@ -758,20 +714,18 @@
                 const data = await response.json();
                 return data.ip;
             } catch (error) {
-                console.error("Could not fetch IP address.", error);
                 return null;
             }
         }
 
-        function safeTgAction(action, fallback = () => {}) {
-            if (tg && tg.initData) { action(tg); } else { fallback();
-                console.log("Telegram WebApp is not available or not ready."); }
+        function safeTgAlert(message) {
+            if (tg && tg.showAlert) tg.showAlert(message);
+            else alert(message);
         }
 
-        function safeTgAlert(message) { safeTgAction(tg => tg.showAlert(message), () => alert(message)); }
-
-        function escapeHTML(str) { if (!str) return '';
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        function escapeHTML(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
 
         function populateWithdrawalMethods() {
             const methodSelect = document.getElementById('method');
@@ -793,9 +747,8 @@
                 saveState();
             }
 
-            allDOMElements.totalEarningEl.innerHTML =
-                `<img src="https://ton.org/download/ton_symbol.png" width="36" height="36" style="vertical-align: middle; margin-right: 8px;">${state.totalEarning.toFixed(3)} TON`;
-
+            const amountSpan = allDOMElements.totalEarningEl.querySelector('span');
+            if (amountSpan) amountSpan.textContent = `${state.totalEarning.toFixed(3)} TON`;
             allDOMElements.adCountEl.textContent = state.adCount;
             allDOMElements.adsTodayCountEl.textContent = `${state.adsWatchedToday} / ${config.DAILY_AD_LIMIT}`;
             allDOMElements.minWithdrawText.textContent = `Minimum withdrawal is ${config.MINIMUM_WITHDRAWAL.toFixed(2)} TON.`;
@@ -812,217 +765,229 @@
                         state.adsWatchedToday = 0;
                         saveState();
                         updateUI();
-                        safeTgAlert(`Your break is over! Please change your IP address before starting.`);
+                        safeTgAlert('Break is over! Change your IP before starting.');
                     } else {
-                        const minutes = Math.floor((remaining / 1000 / 60) % 60);
-                        const seconds = Math.floor((remaining / 1000) % 60);
-                        watchAdButton.querySelector('span').textContent = `Break: ${minutes}m ${seconds}s`;
+                        const mins = Math.floor((remaining / 1000 / 60) % 60);
+                        const secs = Math.floor((remaining / 1000) % 60);
+                        watchAdButton.querySelector('span').textContent = `Break: ${mins}m ${secs}s`;
                     }
                 };
                 cooldownInterval = setInterval(updateTimer, 1000);
                 updateTimer();
             } else {
                 watchAdButton.disabled = state.adsWatchedToday >= config.DAILY_AD_LIMIT;
-                watchAdButton.querySelector('span').textContent = state.adsWatchedToday >= config.DAILY_AD_LIMIT ?
-                    'Take a Break' : 'Watch Ad';
+                watchAdButton.querySelector('span').textContent = state.adsWatchedToday >= config.DAILY_AD_LIMIT ? 'Take a Break' : 'Watch Ad';
             }
             watchAdButton.classList.toggle('pulsing', !watchAdButton.disabled);
             updateChart();
         }
 
         async function watchAd() {
+            if (!richadsController) {
+                safeTgAlert('Ad system not ready. Please try again.');
+                return;
+            }
+
             if (state.lastUsedIp && !state.cooldownUntil) {
                 const newIp = await getIpAddress();
                 if (newIp === state.lastUsedIp) {
-                    safeTgAlert('Please change your IP address to start the next round. Turn airplane mode on and off.');
+                    safeTgAlert('Please change your IP address. Turn airplane mode on and off.');
                     return;
                 } else {
                     state.lastUsedIp = null;
                     saveState();
                 }
             }
+
             allDOMElements.adLoaderOverlay.style.display = 'flex';
 
             try {
-                if (window.TelegramAdsController && typeof window.TelegramAdsController.show === 'function') {
-                    await window.TelegramAdsController.show();
-                } else if (window.TelegramAdsController && typeof window.TelegramAdsController.showAd === 'function') {
-                    await window.TelegramAdsController.showAd();
-                } else {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                }
+                await richadsController.triggerInterstitialVideo();
 
                 state.totalEarning += config.AD_REWARD;
                 state.adCount++;
                 state.adsWatchedToday++;
                 state.weeklyActivity[new Date().getDay()]++;
-                let alertMessage = `Ad watched! You earned ${config.AD_REWARD.toFixed(3)} TON. ${config.DAILY_AD_LIMIT - state.adsWatchedToday} ads left today.`;
+
+                let alertMsg = `Ad watched! You earned ${config.AD_REWARD.toFixed(3)} TON. ${config.DAILY_AD_LIMIT - state.adsWatchedToday} ads left.`;
                 if (state.adsWatchedToday >= config.DAILY_AD_LIMIT) {
                     const cdDate = new Date();
                     cdDate.setMinutes(cdDate.getMinutes() + config.COOLDOWN_MINUTES);
                     state.cooldownUntil = cdDate.toISOString();
                     state.lastUsedIp = currentIpAddress;
-                    alertMessage = `You have completed all ${config.DAILY_AD_LIMIT} tasks for today! Please take a ${config.COOLDOWN_MINUTES}-minute break and change your IP.`;
+                    alertMsg = `Daily limit reached! Take a ${config.COOLDOWN_MINUTES}-minute break and change IP.`;
                 }
                 saveState();
                 updateUI();
-                safeTgAction(tg => tg.HapticFeedback.notificationOccurred('success'));
-                safeTgAlert(alertMessage);
-            } catch (e) {
-                console.error("RichAds Ad Error:", e);
+                safeTgAlert(alertMsg);
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } catch (err) {
+                console.error('Ad error:', err);
                 safeTgAlert('Ad could not be completed. Please try again.');
             } finally {
                 allDOMElements.adLoaderOverlay.style.display = 'none';
             }
         }
 
-        async function handleWithdrawal(event) {
-            event.preventDefault();
-            const { withdrawForm } = allDOMElements;
-            const submitButton = document.getElementById('withdraw-submit-button');
-            const buttonText = submitButton.querySelector('.button-text');
-            const spinner = submitButton.querySelector('.spinner');
-            const amount = parseFloat(withdrawForm.elements['withdraw-amount'].value);
-            const method = withdrawForm.elements.method.value;
-            const accountNumber = withdrawForm.elements['account-number'].value;
+        async function handleWithdrawal(e) {
+            e.preventDefault();
+            const form = allDOMElements.withdrawForm;
+            const submitBtn = document.getElementById('withdraw-submit-button');
+            const btnText = submitBtn.querySelector('.button-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            const amount = parseFloat(form.elements['withdraw-amount'].value);
+            const method = form.elements.method.value;
+            const account = form.elements['account-number'].value;
 
-            if (amount > state.totalEarning) return safeTgAlert('You do not have enough balance.');
-            if (isNaN(amount) || amount < config.MINIMUM_WITHDRAWAL) return safeTgAlert(
-                `Minimum withdrawal amount is ${config.MINIMUM_WITHDRAWAL} TON.`);
+            if (amount > state.totalEarning) return safeTgAlert('Insufficient balance.');
+            if (isNaN(amount) || amount < config.MINIMUM_WITHDRAWAL) return safeTgAlert(`Minimum withdrawal is ${config.MINIMUM_WITHDRAWAL} TON.`);
 
-            buttonText.style.display = 'none';
+            btnText.style.display = 'none';
             spinner.style.display = 'block';
-            submitButton.disabled = true;
-            const user = tg ? tg.initDataUnsafe?.user : { first_name: 'Test', last_name: 'User', username: 'testuser',
-                id: '12345' };
-            const message =
-                `<b>💰 New Withdrawal Request 💰</b>\n\n👤 <b>User:</b> ${escapeHTML(user?.first_name)} ${escapeHTML(user?.last_name)} (@${escapeHTML(user?.username) || 'N/A'})\n🆔 <b>User ID:</b> <code>${user?.id}</code>\n---------------------------------------\n💳 <b>Method:</b> ${escapeHTML(method)}\n🔢 <b>Account:</b> <code>${escapeHTML(accountNumber)}</code>\n💵 <b>Amount:</b> ${amount.toFixed(3)} TON`;
+            submitBtn.disabled = true;
+
+            const user = tg?.initDataUnsafe?.user || { first_name: 'User', last_name: '', username: 'unknown', id: '000' };
+            const msg = `<b>💰 New Withdrawal</b>\n\n👤 ${escapeHTML(user.first_name)} ${escapeHTML(user.last_name)} (@${escapeHTML(user.username)})\n🆔 <code>${user.id}</code>\n💳 ${escapeHTML(method)}\n🔢 <code>${escapeHTML(account)}</code>\n💵 ${amount.toFixed(3)} TON`;
+
             try {
                 const url = `https://api.telegram.org/bot${config.BOT_TOKEN}/sendMessage`;
-                const promises = config.ADMIN_IDS.map(chat_id => fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id, text: message, parse_mode: 'HTML' })
-                }).then(res => res.json()));
-                if (promises.length === 0) throw new Error("No Admin IDs configured");
+                const promises = config.ADMIN_IDS.map(chat_id =>
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id, text: msg, parse_mode: 'HTML' })
+                    }).then(r => r.json())
+                );
+                if (promises.length === 0) throw new Error('No admin');
                 const results = await Promise.all(promises);
                 if (results.some(r => r.ok)) {
                     state.totalEarning -= amount;
-                    const pendingUntil = new Date().getTime() + (72 * 60 * 60 * 1000);
                     state.withdrawalHistory.unshift({
                         method,
-                        number: accountNumber,
+                        number: account,
                         amount,
                         date: new Date().toISOString(),
                         status: 'Pending',
-                        pendingUntil
+                        pendingUntil: Date.now() + 72 * 60 * 60 * 1000
                     });
                     saveState();
                     updateUI();
                     closeModal('withdrawModal');
-                    withdrawForm.reset();
-                    safeTgAlert('Withdrawal request submitted. It will be processed within 72 hours.');
-                    safeTgAction(tg => tg.HapticFeedback.notificationOccurred('success'));
-                } else { throw new Error(JSON.stringify(results)); }
-            } catch (error) {
-                console.error("Withdrawal Error:", error);
-                safeTgAlert('Failed to send your request. Please try again later.');
+                    form.reset();
+                    safeTgAlert('Withdrawal request submitted! Processing within 72 hours.');
+                } else {
+                    throw new Error('Failed');
+                }
+            } catch (err) {
+                console.error(err);
+                safeTgAlert('Request failed. Try again later.');
             } finally {
-                buttonText.style.display = 'inline';
+                btnText.style.display = 'inline';
                 spinner.style.display = 'none';
-                submitButton.disabled = false;
+                submitBtn.disabled = false;
             }
         }
 
         function checkPendingWithdrawals() {
             let changed = false;
             state.withdrawalHistory.forEach(item => {
-                if (item.status === 'Pending' && new Date().getTime() > item.pendingUntil) {
+                if (item.status === 'Pending' && Date.now() > item.pendingUntil) {
                     item.status = 'Success';
                     changed = true;
                 }
             });
             if (changed) {
                 saveState();
-                if (document.getElementById('historyModal').style.display === 'flex') {
-                    renderHistory();
-                }
+                if (document.getElementById('historyModal').style.display === 'flex') renderHistory();
             }
         }
 
         function renderHistory() {
             checkPendingWithdrawals();
-            const { historyListEl } = allDOMElements;
-            if (!state.withdrawalHistory || state.withdrawalHistory.length === 0) {
-                historyListEl.innerHTML = '<p class="no-history">No withdrawal history found.</p>';
+            const list = allDOMElements.historyListEl;
+            if (!state.withdrawalHistory.length) {
+                list.innerHTML = '<p class="no-history">No history yet.</p>';
                 return;
             }
-            historyListEl.innerHTML = state.withdrawalHistory.map(item => `
+            list.innerHTML = state.withdrawalHistory.map(item => `
                 <div class="history-item">
-                    <div class="history-details"><span class="method-number">${escapeHTML(item.method)} - ${escapeHTML(item.number)}</span><span class="date">${new Date(item.date).toLocaleString()}</span></div>
-                    <div class="history-amount"><span>${item.amount.toFixed(3)} TON</span><div class="history-status ${item.status.toLowerCase()}">${item.status}</div></div>
-                </div>`).join('');
+                    <div class="history-details">
+                        <span class="method-number">${escapeHTML(item.method)} - ${escapeHTML(item.number)}</span>
+                        <span class="date">${new Date(item.date).toLocaleString()}</span>
+                    </div>
+                    <div class="history-amount">
+                        <span>${item.amount.toFixed(3)} TON</span>
+                        <div class="history-status ${item.status.toLowerCase()}">${item.status}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function triggerPushAd() {
+            if (richadsController && typeof richadsController.triggerNativeNotification === 'function') {
+                richadsController.triggerNativeNotification().catch(() => {});
+            }
         }
 
         function showModal(modalId, buttonEl) {
-            document.querySelectorAll('.nav-button.active').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
             if (buttonEl) buttonEl.classList.add('active');
             if (modalId === 'historyModal') renderHistory();
             const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.style.display = 'flex';
+                // Sayfa geçişlerinde push reklam göster
+                triggerPushAd();
+            }
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none';
             if (modalId !== 'welcomeModal') {
-                document.querySelectorAll('.nav-button.active').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.nav-button.active').forEach(b => b.classList.remove('active'));
             }
         }
 
         function getReferralLink() {
-            const userId = tg ? tg.initDataUnsafe?.user?.id : 'testuser';
+            const userId = tg?.initDataUnsafe?.user?.id || 'test';
             return `https://t.me/${config.BOT_USERNAME}?startapp=${userId}`;
         }
 
         function copyReferralLink() {
-            navigator.clipboard.writeText(getReferralLink()).then(() => safeTgAlert('Referral link copied!')).catch(
-                () => safeTgAlert('Could not copy link.'));
+            navigator.clipboard.writeText(getReferralLink()).then(() => safeTgAlert('Link copied!'));
         }
 
         function shareReferralLink() {
             const link = getReferralLink();
-            const text = `Earn TON by watching ads! Join using my link:\n${link}`;
-            safeTgAction(tg => tg.openTelegramLink(
-                `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`));
+            const text = `Earn TON by watching ads! Join me: ${link}`;
+            if (tg?.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+            }
         }
 
         let myChart;
-
         function updateChart() {
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            const fontColor = '#F5F5F7';
-            const gridColor = 'rgba(255, 255, 255, 0.1)';
+            const ctx = document.getElementById('activityChart')?.getContext('2d');
+            if (!ctx) return;
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                     datasets: [{
-                        label: 'Ads Watched',
+                        label: 'Ads',
                         data: state.weeklyActivity,
-                        backgroundColor: 'rgba(var(--primary-color-rgb), 0.2)',
-                        borderColor: 'rgb(var(--primary-color-rgb))',
+                        backgroundColor: 'rgba(0,136,204,0.3)',
+                        borderColor: '#0088CC',
                         borderWidth: 2,
-                        borderRadius: 8,
-                        hoverBackgroundColor: 'rgba(var(--primary-color-rgb), 0.4)'
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 5, color: fontColor },
-                            grid: { color: gridColor } },
-                        x: { ticks: { color: fontColor }, grid: { color: gridColor } }
+                        y: { beginAtZero: true, ticks: { color: '#F5F5F7' }, grid: { color: '#3A3A3C' } },
+                        x: { ticks: { color: '#F5F5F7' }, grid: { color: '#3A3A3C' } }
                     },
                     plugins: { legend: { display: false } },
                     responsive: true,
@@ -1032,68 +997,55 @@
         }
 
         function initFirebase() {
-            try { firebase.initializeApp(config.firebase);
-                firebaseDb = firebase.database(); } catch (e) { console.error(
-                    "Firebase initialization failed:", e); }
+            try {
+                firebase.initializeApp(config.firebase);
+                firebaseDb = firebase.database();
+            } catch (e) {}
         }
 
         async function handleReferral() {
-            if (!firebaseDb || !tg || !tg.initDataUnsafe) return;
+            if (!firebaseDb || !tg?.initDataUnsafe) return;
             const startParam = tg.initDataUnsafe.start_param;
             const currentUser = tg.initDataUnsafe.user;
             if (!startParam || isNaN(parseInt(startParam)) || parseInt(startParam) === currentUser.id) return;
-
             const referrerId = parseInt(startParam);
-            const referredUserRef = firebaseDb.ref(`users/${currentUser.id}/referred_by`);
-            const snapshot = await referredUserRef.once('value');
-            if (snapshot.exists()) return;
-
-            await referredUserRef.set(referrerId);
-            const referrerRef = firebaseDb.ref(`users/${referrerId}/referrals`);
-            await referrerRef.transaction((currentCount) => (currentCount || 0) + 1);
-
-            const message =
-                `🎉 Congratulations! User ${currentUser.first_name} (@${currentUser.username}) joined using your link. You will receive your bonus next time you open the app.`;
-            await fetch(`https://api.telegram.org/bot${config.BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: referrerId, text: message })
-            });
+            const ref = firebaseDb.ref(`users/${currentUser.id}/referred_by`);
+            const snap = await ref.once('value');
+            if (snap.exists()) return;
+            await ref.set(referrerId);
+            const refRef = firebaseDb.ref(`users/${referrerId}/referrals`);
+            await refRef.transaction(count => (count || 0) + 1);
         }
 
         async function processReferralRewards() {
-            if (!firebaseDb || !tg || !tg.initDataUnsafe) return;
+            if (!firebaseDb || !tg?.initDataUnsafe) return;
             const userId = tg.initDataUnsafe.user.id;
-            const referralsRef = firebaseDb.ref(`users/${userId}/referrals`);
-            const snapshot = await referralsRef.once('value');
-            const totalReferrals = snapshot.val() || 0;
-
-            const rewardedReferrals = state.rewardedReferrals || 0;
-            const newReferrals = totalReferrals - rewardedReferrals;
-
-            if (newReferrals > 0) {
-                const bonus = newReferrals * config.REFERRAL_REWARD;
-                state.totalEarning += bonus;
-                state.rewardedReferrals = totalReferrals;
+            const ref = firebaseDb.ref(`users/${userId}/referrals`);
+            const snap = await ref.once('value');
+            const total = snap.val() || 0;
+            const rewarded = state.rewardedReferrals || 0;
+            const news = total - rewarded;
+            if (news > 0) {
+                state.totalEarning += news * config.REFERRAL_REWARD;
+                state.rewardedReferrals = total;
                 saveState();
-                safeTgAlert(`You received a bonus of ${bonus.toFixed(3)} TON for ${newReferrals} new referral(s)!`);
+                safeTgAlert(`+${(news * config.REFERRAL_REWARD).toFixed(3)} TON for ${news} new referral(s)!`);
             }
         }
 
-        async function listenForReferralCount() {
-            if (!firebaseDb || !tg || !tg.initDataUnsafe) return;
+        function listenForReferralCount() {
+            if (!firebaseDb || !tg?.initDataUnsafe) return;
             const userId = tg.initDataUnsafe.user.id;
-            const referralsRef = firebaseDb.ref(`users/${userId}/referrals`);
-            referralsRef.on('value', (snapshot) => { allDOMElements.referralCountEl.textContent = snapshot.val() ||
-                    0; });
+            firebaseDb.ref(`users/${userId}/referrals`).on('value', snap => {
+                allDOMElements.referralCountEl.textContent = snap.val() || 0;
+            });
         }
 
         async function initApp() {
             let appReady = false;
-            let preloaderAnimationDone = false;
-
-            const tryFinishLoading = () => {
-                if (appReady && preloaderAnimationDone) {
+            let preloaderDone = false;
+            const tryFinish = () => {
+                if (appReady && preloaderDone) {
                     allDOMElements.preloader.style.opacity = '0';
                     allDOMElements.preloaderFooter.style.opacity = '0';
                     setTimeout(() => {
@@ -1104,29 +1056,28 @@
                 }
             };
 
-            let percentage = 0;
+            let pct = 0;
             const interval = setInterval(() => {
-                percentage += Math.floor(Math.random() * 5) + 1;
-                if (percentage > 100) percentage = 100;
-                allDOMElements.preloaderPercentage.textContent = `${percentage}%`;
-                if (percentage >= 100) {
+                pct += Math.floor(Math.random() * 4) + 1;
+                if (pct > 100) pct = 100;
+                allDOMElements.preloaderPercentage.textContent = `${pct}%`;
+                if (pct >= 100) {
                     clearInterval(interval);
-                    preloaderAnimationDone = true;
-                    tryFinishLoading();
+                    preloaderDone = true;
+                    tryFinish();
                 }
-            }, 60);
+            }, 50);
 
             try {
                 initFirebase();
                 populateWithdrawalMethods();
-
                 allDOMElements.welcomeTitle.textContent = config.welcomeNotice.title;
                 allDOMElements.welcomeMessage.textContent = config.welcomeNotice.message;
 
                 await initDB();
                 await loadState();
 
-                const currentUserId = tg ? tg.initDataUnsafe?.user?.id : null;
+                const currentUserId = tg?.initDataUnsafe?.user?.id;
                 if (currentUserId) {
                     if (!state.originalUserId) {
                         state.originalUserId = currentUserId;
@@ -1138,31 +1089,28 @@
                 }
 
                 currentIpAddress = await getIpAddress();
-                const isMultiAccountIP = await checkIpInDB(currentIpAddress);
-                const isNewUser = !(localStorage.getItem('userIdentified'));
-
-                if (isMultiAccountIP && isNewUser) {
+                const multiIp = await checkIpInDB(currentIpAddress);
+                if (multiIp && !localStorage.getItem('userIdentified')) {
                     document.getElementById('multiAccountModal').style.display = 'flex';
                     return;
                 }
-                if (!isMultiAccountIP) { saveIpToDB(currentIpAddress);
-                    localStorage.setItem('userIdentified', 'true'); }
+                if (!multiIp) {
+                    saveIpToDB(currentIpAddress);
+                    localStorage.setItem('userIdentified', 'true');
+                }
 
                 await handleReferral();
                 await processReferralRewards();
-                await listenForReferralCount();
+                listenForReferralCount();
+                setInterval(checkPendingWithdrawals, 60000);
 
-                setInterval(checkPendingWithdrawals, 60 * 1000);
-
-                const user = tg ? tg.initDataUnsafe?.user : { first_name: 'User', photo_url: null };
-                if (user?.first_name) {
+                const user = tg?.initDataUnsafe?.user || { first_name: 'User', photo_url: null };
+                if (user.first_name) {
                     allDOMElements.greetingEl.textContent = `Welcome, ${escapeHTML(user.first_name)}!`;
                     if (user.photo_url) {
-                        allDOMElements.profilePicEl.innerHTML =
-                            `<img src="${user.photo_url}" alt="P">`;
+                        allDOMElements.profilePicEl.innerHTML = `<img src="${user.photo_url}" alt="P">`;
                     } else {
-                        allDOMElements.profilePicEl.innerHTML =
-                            `<span>${escapeHTML(user.first_name.charAt(0))}</span>`;
+                        allDOMElements.profilePicEl.innerHTML = `<span>${escapeHTML(user.first_name.charAt(0))}</span>`;
                     }
                 }
 
@@ -1170,27 +1118,20 @@
 
                 allDOMElements.watchAdButton.addEventListener('click', watchAd);
                 allDOMElements.withdrawForm.addEventListener('submit', handleWithdrawal);
-                allDOMElements.joinChannelButton.addEventListener('click', () => safeTgAction(tg => tg
-                    .openTelegramLink(config.TELEGRAM_CHANNEL_LINK)));
-                // adminContactButton removed, no need to add listener
                 allDOMElements.copyLinkButton.addEventListener('click', copyReferralLink);
                 allDOMElements.shareLinkButton.addEventListener('click', shareReferralLink);
-                window.onclick = (event) => { if (event.target.classList.contains('modal')) closeModal(event.target
-                        .id); }
+                window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModal(e.target.id); };
 
-                safeTgAction(tg => { tg.ready();
-                    tg.expand(); });
-
-                if (!sessionStorage.getItem('alreadyVisited')) { showModal('welcomeModal');
-                    sessionStorage.setItem('alreadyVisited', 'true'); }
-            } catch (error) { console.error("Initialization failed:", error); } finally {
+                if (tg) { tg.ready(); tg.expand(); }
+                if (!sessionStorage.getItem('visited')) { showModal('welcomeModal'); sessionStorage.setItem('visited', '1'); }
+            } catch (e) { console.error(e); } finally {
                 appReady = true;
-                if (percentage < 100) {
+                if (pct < 100) {
                     clearInterval(interval);
                     allDOMElements.preloaderPercentage.textContent = '100%';
-                    preloaderAnimationDone = true;
+                    preloaderDone = true;
                 }
-                tryFinishLoading();
+                tryFinish();
             }
         }
 
