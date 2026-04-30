@@ -168,7 +168,7 @@
 
         <p class="info-text">
             🎬 Reklam izleyerek anında <strong style="color:var(--accent);">0.005 TON</strong> kazan.<br>
-            Ödül 10 saniye sonra otomatik eklenir.
+            Ödül sadece reklam başarıyla izlenirse verilir.
         </p>
 
         <button class="btn btn-primary" id="btn-watch">
@@ -230,9 +230,7 @@
     let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
     const DAILY_LIMIT = 50;
     const REWARD_AMOUNT = 0.005;
-    const AUTO_REWARD_DELAY = 10000; // 10 saniye
 
-    // localStorage state
     const DEFAULT_STATE = {
         balance: 0, todayAds: 0, refs: 0, refEarn: 0,
         dailyEarnings: { mon:0, tue:0, wed:0, thu:0, fri:0, sat:0, sun:0 }
@@ -244,17 +242,13 @@
     function saveState(s) { localStorage.setItem(`clashton_${uid}`, JSON.stringify(s)); }
     let state = loadState();
 
-    // RichAds
     window.TelegramAdsController = new TelegramAdsController();
     window.TelegramAdsController.initialize({ pubId: "988708", appId: "7273", debug: false });
 
     let adInProgress = false;
-    let rewarded = false;
     let weeklyChart = null;
     let autoAdTimer = null;
-    let autoRewardTimeout = null;
 
-    // ---------- Günlük kazanç ----------
     function getTodayKey() {
         const keys = ['sun','mon','tue','wed','thu','fri','sat'];
         return keys[new Date().getDay()];
@@ -267,42 +261,30 @@
     }
 
     function grantReward(amount = REWARD_AMOUNT) {
-        if (rewarded) return;
         if (state.todayAds >= DAILY_LIMIT) return;
-        rewarded = true;
         state.balance += amount;
         state.todayAds += 1;
         addDailyEarning(amount);
         saveState(state);
         updateUI();
         showToast(`🎉 +${amount.toFixed(3)} TON eklendi!`, 'success');
-        cleanupAd();
     }
 
     function cleanupAd() {
-        if (autoRewardTimeout) clearTimeout(autoRewardTimeout);
         document.getElementById('ad-loader').style.display = 'none';
         adInProgress = false;
-        rewarded = false;
-        autoRewardTimeout = null;
     }
 
-    // Rastgele reklam türü
     async function triggerRandomAd() {
         const types = ['video', 'banner', 'push'];
         const random = types[Math.floor(Math.random() * types.length)];
-        try {
-            switch(random) {
-                case 'video': await window.TelegramAdsController.triggerInterstitialVideo(); break;
-                case 'banner': await window.TelegramAdsController.triggerInterstitialBanner(); break;
-                case 'push': await window.TelegramAdsController.triggerPush(); break;
-            }
-        } catch(e) {
-            console.log(`${random} reklam oynatılamadı:`, e);
+        switch(random) {
+            case 'video': await window.TelegramAdsController.triggerInterstitialVideo(); break;
+            case 'banner': await window.TelegramAdsController.triggerInterstitialBanner(); break;
+            case 'push': await window.TelegramAdsController.triggerPush(); break;
         }
     }
 
-    // Ana reklam başlatma fonksiyonu
     async function startAd() {
         if (adInProgress) return;
         if (state.todayAds >= DAILY_LIMIT) {
@@ -311,29 +293,23 @@
         }
 
         adInProgress = true;
-        rewarded = false;
         document.getElementById('ad-loader').style.display = 'flex';
-        document.getElementById('ad-loader').querySelector('.loader-text').innerText = 'Reklam başlatılıyor…';
+        document.querySelector('.loader-text').innerText = 'Reklam başlatılıyor…';
 
-        // 10 saniye sonra otomatik ödül
-        autoRewardTimeout = setTimeout(() => {
-            if (!rewarded) {
-                grantReward(REWARD_AMOUNT);
-            }
-        }, AUTO_REWARD_DELAY);
-
-        // Reklamı dene (başarılı olursa da ödül ver)
-        triggerRandomAd().then(() => {
-            if (!rewarded) grantReward(REWARD_AMOUNT);
-        }).catch(() => {
-            // Hata olsa bile timeout zaten ödülü verecek
-        });
+        try {
+            await triggerRandomAd();
+            // Reklam başarıyla oynatıldı
+            grantReward(REWARD_AMOUNT);
+        } catch (err) {
+            console.error("Reklam hatası:", err);
+            showToast("Reklam oynatılamadı, lütfen tekrar dene.", "error");
+        } finally {
+            cleanupAd();
+        }
     }
 
-    // Buton tıklama
     document.getElementById('btn-watch').addEventListener('click', startAd);
 
-    // Sayfa değiştirince 2 saniye sonra otomatik reklam
     function switchTab(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -342,10 +318,7 @@
 
         if (pageId === 'p-home') updateChart();
 
-        // Önceki otomatik reklam zamanlayıcısını temizle
         if (autoAdTimer) clearTimeout(autoAdTimer);
-
-        // Limit dolmadıysa ve şu an reklam oynamıyorsa 2 saniye sonra başlat
         if (!adInProgress && state.todayAds < DAILY_LIMIT) {
             autoAdTimer = setTimeout(() => {
                 if (!adInProgress && state.todayAds < DAILY_LIMIT) {
@@ -355,7 +328,6 @@
         }
     }
 
-    // ---------- Grafik ----------
     function updateChart() {
         const ctx = document.getElementById('chart-weekly')?.getContext('2d');
         if (!ctx) return;
@@ -392,7 +364,6 @@
         }
     }
 
-    // ---------- UI ----------
     function updateUI() {
         document.getElementById('st-bal').innerText = state.balance.toFixed(4);
         document.getElementById('wd-net-bal').innerText = state.balance.toFixed(4) + ' TON';
@@ -436,7 +407,6 @@
         showToast('📋 Davet linki kopyalandı.', 'success');
     }
 
-    // Başlangıç
     updateUI();
     updateChart();
 </script>
