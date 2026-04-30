@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ClashTonAds - Premium Web App</title>
+    <title>ClashTonAds - Real Earning</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
@@ -24,170 +24,124 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
         
         :root {
-            --primary: #FF7EB9; /* Kawaii Pink */
-            --secondary: #70D6FF; /* Sky Blue */
-            --bg: #121212;
-            --card: #FFFFFF;
-            --text: #000000;
-            --accent: #FFD60A;
-            --border-width: 3px;
+            --kawaii-pink: #FF7EB9;
+            --kawaii-blue: #70D6FF;
+            --kawaii-yellow: #FFD60A;
+            --black: #000000;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
             font-family: 'Fredoka', sans-serif;
-            margin: 0; padding: 20px 15px 120px 15px;
-            background-color: var(--bg);
-            color: var(--text);
+            margin: 0; padding: 20px 15px 100px 15px;
+            background-color: #121212;
+            color: var(--black);
             overscroll-behavior-y: contain;
         }
 
-        /* Kawaii & Pro Design Elements */
-        .kawaii-border {
-            border: var(--border-width) solid #000000;
-            box-shadow: 4px 4px 0px #000000;
-            border-radius: 20px;
+        /* Black Border Style */
+        .pro-card {
+            background: white;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0px var(--black);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        #preloader {
-            position: fixed; inset: 0; z-index: 9999; background: var(--bg);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .btn-watch {
+            width: 100%;
+            padding: 20px;
+            background: var(--kawaii-yellow);
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0px var(--black);
+            border-radius: 18px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.1s;
         }
 
-        .container { max-width: 500px; margin: 0 auto; display: none; }
-
-        .balance-card {
-            background: var(--primary);
-            padding: 30px; text-align: center; margin-bottom: 25px;
-            color: #000;
+        .btn-watch:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px var(--black);
         }
 
-        .balance-amount { font-size: 42px; font-weight: 800; margin: 10px 0; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
-        .stat-item { background: var(--secondary); padding: 15px 5px; text-align: center; }
-        .stat-item .value { font-size: 20px; font-weight: 700; display: block; }
-        .stat-item .label { font-size: 12px; font-weight: 600; text-transform: uppercase; }
-
-        .action-btn {
-            width: 100%; padding: 20px; border: var(--border-width) solid #000;
-            background: var(--accent); font-size: 20px; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
-            box-shadow: 4px 4px 0px #000; transition: transform 0.1s;
+        .btn-watch:disabled {
+            background: #888 !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 5px 5px 0px var(--black);
         }
-        .action-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
-        .action-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* Navigation */
+        /* Nav Bar */
         .nav-bar {
-            position: fixed; bottom: 15px; left: 15px; right: 15px; max-width: 470px; margin: 0 auto;
-            display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px;
-            background: #fff; border: var(--border-width) solid #000; border-radius: 25px;
-            box-shadow: 6px 6px 0px #000; z-index: 100;
+            position: fixed; bottom: 20px; left: 15px; right: 15px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            background: white; border: 3px solid var(--black);
+            border-radius: 20px; box-shadow: 5px 5px 0px var(--black);
+            padding: 10px; z-index: 100;
         }
         .nav-item {
-            background: none; border: none; font-size: 12px; font-weight: 600;
-            color: #888; display: flex; flex-direction: column; align-items: center; gap: 4px;
+            border: none; background: none; font-size: 10px; font-weight: 700;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-        .nav-item.active { color: var(--primary); }
-        .nav-item i { font-size: 22px; }
+        .nav-item.active { color: var(--kawaii-pink); }
+        .nav-item i { font-size: 20px; }
 
-        /* Modals */
-        .modal {
-            display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(0,0,0,0.8); align-items: flex-end;
-        }
-        .modal-content {
-            background: #fff; width: 100%; max-width: 500px; margin: 0 auto;
-            padding: 35px 25px; border-radius: 30px 30px 0 0; border-top: var(--border-width) solid #000;
-        }
-
-        input {
-            width: 100%; padding: 15px; margin: 10px 0; font-family: inherit;
-            border: 2px solid #000; border-radius: 12px; background: #f0f0f0;
-        }
-
-        #ad-loading {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000;
-            display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+        #loader {
+            position: fixed; inset: 0; background: #121212; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
     </style>
 </head>
 <body>
 
-    <div id="preloader">
-        <h1 style="color:var(--primary); font-size:32px;">LOADING...</h1>
-        <div id="load-pct" style="font-weight:700; color:#fff;">0%</div>
+    <div id="loader">
+        <h1 style="color:var(--kawaii-pink)">CLASH TON</h1>
+        <div id="load-text">Initializing...</div>
     </div>
 
-    <div id="ad-loading">
-        <div class="kawaii-border" style="width:50px; height:50px; border-color:#fff; background:var(--primary); animation: bounce 0.6s infinite alternate;"></div>
-        <p style="margin-top:20px;">Fetching Ad...</p>
-    </div>
+    <div id="main-app" style="display:none;">
+        <div class="pro-card" style="background: var(--kawaii-pink); color: white; text-align: center;">
+            <h3 style="margin:0; font-size:14px; text-transform:uppercase;">My Balance</h3>
+            <div style="font-size:36px; font-weight:800;" id="balance">0.000 TON</div>
+        </div>
 
-    <div class="container" id="app">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; color:#fff;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div id="u-avatar" class="kawaii-border" style="width:45px; height:45px; background:#fff; overflow:hidden;"></div>
-                <span id="u-name" style="font-weight:700;">Player</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div class="pro-card" style="margin-bottom:0; background: var(--kawaii-blue); text-align: center;">
+                <div style="font-size:24px; font-weight:800;" id="today-count">0/50</div>
+                <div style="font-size:12px; font-weight:600;">Daily Ads</div>
             </div>
-            <i class="fa-solid fa-gear" style="font-size:20px;"></i>
+            <div class="pro-card" style="margin-bottom:0; background: var(--kawaii-yellow); text-align: center;">
+                <div style="font-size:24px; font-weight:800;" id="ref-count">0</div>
+                <div style="font-size:12px; font-weight:600;">Referrals</div>
+            </div>
         </div>
 
-        <div class="balance-card kawaii-border">
-            <span style="font-weight:600; text-transform:uppercase; letter-spacing:1px;">Current Balance</span>
-            <div class="balance-amount" id="bal-text">0.000 TON</div>
-            <div style="font-size:12px; font-weight:600;">≈ $<span id="usd-val">0.00</span></div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-item kawaii-border"><span class="value" id="s-total">0</span><span class="label">Total</span></div>
-            <div class="stat-item kawaii-border"><span class="value" id="s-today">0/50</span><span class="label">Daily</span></div>
-            <div class="stat-item kawaii-border"><span class="value" id="s-refs">0</span><span class="label">Refs</span></div>
-        </div>
-
-        <button class="action-btn" id="watch-btn">
-            <i class="fa-solid fa-circle-play"></i> WATCH AD & EARN
+        <button class="btn-watch" id="watchBtn">
+            <i class="fa-solid fa-play-circle"></i> WATCH AD & EARN
         </button>
 
-        <div class="kawaii-border" style="background:#fff; padding:20px; margin-top:25px;">
-            <h4 style="margin:0 0 15px 0;">Weekly Activity</h4>
-            <div style="height:150px;"><canvas id="chart"></canvas></div>
+        <div class="pro-card" style="margin-top:20px; height: 200px;">
+            <canvas id="myChart"></canvas>
         </div>
     </div>
 
     <div class="nav-bar">
-        <button class="nav-item active" onclick="nav('home', this)"><i class="fa-solid fa-house-chimney"></i><span>Home</span></button>
-        <button class="nav-item" onclick="nav('cash', this)"><i class="fa-solid fa-wallet"></i><span>Cash</span></button>
-        <button class="nav-item" onclick="nav('history', this)"><i class="fa-solid fa-receipt"></i><span>History</span></button>
-        <button class="nav-item" onclick="nav('invite', this)"><i class="fa-solid fa-heart"></i><span>Invite</span></button>
+        <button class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></button>
+        <button class="nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></button>
+        <button class="nav-item"><i class="fa-solid fa-list"></i><span>Log</span></button>
+        <button class="nav-item"><i class="fa-solid fa-share-nodes"></i><span>Invite</span></button>
     </div>
 
-    <div id="m-cash" class="modal"><div class="modal-content">
-        <h2 style="margin-top:0;">Withdraw</h2>
-        <input type="text" id="w-addr" placeholder="TON Wallet Address">
-        <input type="number" id="w-amt" placeholder="Amount (Min 0.5)">
-        <button class="action-btn" onclick="requestWithdraw()">Confirm</button>
-        <button onclick="closeM()" style="width:100%; margin-top:10px; background:none; border:none; font-weight:700;">Cancel</button>
-    </div></div>
-
-    <div id="m-history" class="modal"><div class="modal-content">
-        <h2>History</h2>
-        <div id="h-list" style="max-height:300px; overflow-y:auto;"></div>
-        <button class="action-btn" onclick="closeM()" style="margin-top:20px;">Close</button>
-    </div></div>
-
-    <div id="m-invite" class="modal"><div class="modal-content">
-        <h2>Invite Friends</h2>
-        <p>Share your link and get 0.05 TON!</p>
-        <button class="action-btn" onclick="copyL()"><i class="fa-solid fa-copy"></i> Copy Referral</button>
-        <button onclick="closeM()" style="width:100%; margin-top:15px; border:none; background:none;">Close</button>
-    </div></div>
-
     <script>
-        // --- FIREBASE CONFIG ---
-        const fbConf = {
+        const fbConfig = {
             apiKey: "AIzaSyDcL3C-C3rCxxZTebym9t8lL55EYKu3I5A",
             authDomain: "gen-lang-client-0766979962.firebaseapp.com",
             projectId: "gen-lang-client-0766979962",
@@ -196,135 +150,96 @@
             appId: "1:327892498777:web:49ce0bab8267562f033448"
         };
 
-        firebase.initializeApp(fbConf);
+        firebase.initializeApp(fbConfig);
         const db = firebase.firestore();
         const tg = window.Telegram.WebApp;
+        
+        let userId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "test_dev";
+        let userState = { balance: 0, totalAds: 0, todayAds: 0, refs: 0 };
 
-        let state = { bal: 0, total: 0, today: 0, refs: 0, week: [0,0,0,0,0,0,0], history: [] };
-        let uid = "dev_mode";
-
-        if(tg.initDataUnsafe?.user) {
-            uid = String(tg.initDataUnsafe.user.id);
-            document.getElementById('u-name').textContent = tg.initDataUnsafe.user.first_name;
-            if(tg.initDataUnsafe.user.photo_url) document.getElementById('u-avatar').innerHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" width="100%">`;
-        }
-
-        // --- FIRESTORE SYNC (Auto Collection) ---
-        async function sync() {
-            const userRef = db.collection('users').doc(uid);
+        async function initUser() {
+            const userRef = db.collection('users').doc(userId);
             const doc = await userRef.get();
             
-            if(doc.exists()) {
-                state = { ...state, ...doc.data() };
+            if (!doc.exists()) {
+                await userRef.set(userState);
             } else {
-                await userRef.set(state); // İlk kez giriş yapan kullanıcıyı kaydet
+                userState = doc.data();
             }
-            update();
+            updateUI();
         }
 
-        async function save() {
-            await db.collection('users').doc(uid).set(state, { merge: true });
-        }
-
-        function update() {
-            document.getElementById('bal-text').textContent = state.bal.toFixed(3) + " TON";
-            document.getElementById('usd-val').textContent = (state.bal * 7.2).toFixed(2); // Örnek kur
-            document.getElementById('s-total').textContent = state.total;
-            document.getElementById('s-today').textContent = `${state.today}/50`;
-            document.getElementById('s-refs').textContent = state.refs;
-            document.getElementById('watch-btn').disabled = state.today >= 50;
-            drawChart();
-        }
-
-        async function doAd() {
-            if(!window.richAdsController) return;
-            document.getElementById('ad-loading').style.display = 'flex';
-            try {
-                await window.richAdsController.triggerInterstitialVideo();
-                state.bal += 0.005;
-                state.total++;
-                state.today++;
-                state.week[new Date().getDay()]++;
-                update();
-                save();
-                tg.showPopup({ message: "Earned 0.005 TON!" });
-            } catch(e) {
-                tg.showAlert("No ads ready yet.");
-            }
-            document.getElementById('ad-loading').style.display = 'none';
-        }
-
-        // --- NAV & MODALS ---
-        function nav(p, btn) {
-            closeM();
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-            if(p !== 'home') document.getElementById('m-'+p).style.display = 'flex';
-            if(p === 'history') renderH();
-        }
-
-        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-
-        function renderH() {
-            const list = document.getElementById('h-list');
-            list.innerHTML = state.history.length ? state.history.map(i => `
-                <div style="border-bottom:1px solid #eee; padding:10px 0; display:flex; justify-content:space-between;">
-                    <span>${i.amt} TON</span><span style="color:orange">${i.status}</span>
-                </div>
-            `).join('') : '<p style="text-align:center">No data</p>';
-        }
-
-        function requestWithdraw() {
-            const a = parseFloat(document.getElementById('w-amt').value);
-            const addr = document.getElementById('w-addr').value;
-            if(a < 0.5 || a > state.bal || !addr) return tg.showAlert("Invalid amount or address!");
+        function updateUI() {
+            document.getElementById('balance').textContent = userState.balance.toFixed(3) + " TON";
+            document.getElementById('today-count').textContent = userState.todayAds + "/50";
+            document.getElementById('ref-count').textContent = userState.refs;
             
-            state.bal -= a;
-            state.history.unshift({ amt: a, status: "Pending", date: new Date().toLocaleDateString() });
-            save(); update(); closeM();
-            tg.showAlert("Request sent!");
+            const btn = document.getElementById('watchBtn');
+            if(userState.todayAds >= 50) {
+                btn.disabled = true;
+                btn.textContent = "LIMIT REACHED";
+            }
         }
 
-        function copyL() {
-            navigator.clipboard.writeText("https://t.me/ClashTonAdsBot?start=" + uid);
-            tg.showAlert("Link copied!");
-        }
+        // GERÇEK REKLAM VE LOG SİSTEMİ
+        async function handleWatchAd() {
+            const btn = document.getElementById('watchBtn');
+            btn.disabled = true; // Çift tıklamayı engelle
+            
+            try {
+                // RichAds Tetikleyici
+                await window.richAdsController.triggerInterstitialVideo();
+                
+                // Ödül ve Loglama
+                const reward = 0.005;
+                userState.balance += reward;
+                userState.totalAds += 1;
+                userState.todayAds += 1;
 
-        let cObj;
-        function drawChart() {
-            const ctx = document.getElementById('chart').getContext('2d');
-            if(cObj) cObj.destroy();
-            cObj = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['S','M','T','W','T','F','S'],
-                    datasets: [{ data: state.week, backgroundColor: '#FF7EB9', borderRadius: 5 }]
-                },
-                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
+                // 1. Kullanıcıyı güncelle
+                await db.collection('users').doc(userId).update(userState);
+
+                // 2. watchads koleksiyonuna gerçek log at
+                await db.collection('watchads').add({
+                    uid: userId,
+                    reward: reward,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                updateUI();
+                tg.showPopup({ message: "Success! +0.005 TON" });
+            } catch (err) {
+                tg.showAlert("Ad not ready or closed early.");
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         window.onload = async () => {
-            let p = 0;
-            const t = setInterval(() => {
-                p += 10;
-                document.getElementById('load-pct').textContent = p + '%';
-                if(p >= 100) {
-                    clearInterval(t);
-                    document.getElementById('preloader').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                }
-            }, 30);
+            await initUser();
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('watchBtn').addEventListener('click', handleWatchAd);
+            
+            // Chart init
+            const ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Ads',
+                        data: [12, 19, 3, 5, 2, 3, userState.todayAds],
+                        borderColor: '#FF7EB9',
+                        tension: 0.4
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
 
-            await sync();
-            document.getElementById('watch-btn').onclick = doAd;
             tg.ready();
             tg.expand();
         };
     </script>
-
-    <style>
-        @keyframes bounce { to { transform: translateY(-10px); } }
-    </style>
 </body>
 </html>
