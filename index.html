@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TonexaAds</title>
 
+    <!-- Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <!-- RichAds SDK -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -65,7 +69,6 @@
         .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { border-color: var(--success); }
         .toast.error { border-color: var(--error); }
-        .toast.info { border-color: var(--accent); }
 
         .container { flex:1; overflow-y:auto; padding:20px 20px 110px; position:relative; z-index:1; }
         .card {
@@ -151,7 +154,7 @@
 
 <div class="loader-overlay" id="ad-loader">
     <div class="loader-spinner"></div>
-    <div class="loader-text">Reklam yükleniyor…</div>
+    <div class="loader-text">Video reklam aranıyor…</div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -245,36 +248,56 @@
 </nav>
 
 <script>
+    // Telegram WebApp
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
+    // Kullanıcı kimliği
     let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
     const DAILY_LIMIT = 50;
     const REWARD = 0.005;
 
+    // Varsayılan durum
     const DEFAULT_STATE = {
-        balance: 0, todayAds: 0, refs: 0, refEarn: 0,
+        balance: 0,
+        todayAds: 0,
+        refs: 0,
+        refEarn: 0,
         dailyEarnings: { mon:0, tue:0, wed:0, thu:0, fri:0, sat:0, sun:0 }
     };
-    function loadState() { return JSON.parse(localStorage.getItem(`tonexa_${uid}`)) || {...DEFAULT_STATE}; }
+
+    function loadState() {
+        const saved = localStorage.getItem(`tonexa_${uid}`);
+        return saved ? JSON.parse(saved) : { ...DEFAULT_STATE };
+    }
     function saveState(s) { localStorage.setItem(`tonexa_${uid}`, JSON.stringify(s)); }
+
     let state = loadState();
 
-    window.TelegramAdsController = new TelegramAdsController();
-    window.TelegramAdsController.initialize({ pubId: "988708", appId: "7273", debug: false });
+    // RichAds Controller'ı başlat
+    const richadsController = new window.TelegramAdsController();
+    richadsController.initialize({
+        pubId: "988708",
+        appId: "7273",
+        debug: false
+    });
 
     let adInProgress = false;
     let weeklyChart = null;
-    let autoAdTimer = null;
 
-    function getDayKey() { return ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()]; }
+    function getDayKey() {
+        const keys = ['sun','mon','tue','wed','thu','fri','sat'];
+        return keys[new Date().getDay()];
+    }
+
     function addDaily(amt) {
-        const k = getDayKey();
-        state.dailyEarnings[k] = (state.dailyEarnings[k] || 0) + amt;
+        const key = getDayKey();
+        state.dailyEarnings[key] = (state.dailyEarnings[key] || 0) + amt;
         saveState(state);
         updateChart();
     }
+
     function giveReward() {
         if (state.todayAds >= DAILY_LIMIT) return;
         state.balance += REWARD;
@@ -284,104 +307,67 @@
         updateUI();
         showToast(`🎉 +${REWARD.toFixed(3)} TON eklendi!`, 'success');
     }
+
     function cleanup() {
         document.getElementById('ad-loader').style.display = 'none';
         adInProgress = false;
     }
-    async function tryOnce(fn) { try { await fn(); return true; } catch { return false; } }
 
-    // ========== MANUEL VİDEO REKLAM (butona tıkla) ==========
+    // Reklamı başlat (buton tıklaması)
     async function startVideoAd() {
         if (adInProgress) return;
         if (state.todayAds >= DAILY_LIMIT) {
             showToast("Günlük limit doldu.", "error");
             return;
         }
+
         adInProgress = true;
         document.getElementById('ad-loader').style.display = 'flex';
         const msg = document.querySelector('.loader-text');
+
+        // 3 kez dene
         for (let i = 0; i < 3; i++) {
             msg.innerText = i === 0 ? 'Video reklam aranıyor…' : `Tekrar deneniyor (${i+1}/3)…`;
             if (i > 0) await new Promise(r => setTimeout(r, 1500));
-            if (await tryOnce(() => window.TelegramAdsController.triggerInterstitialVideo())) {
-                giveReward(); cleanup(); return;
+
+            try {
+                await richadsController.triggerInterstitialVideo();
+                // Reklam başarıyla izlendi ve kapandı, ödülü ver
+                giveReward();
+                cleanup();
+                return;
+            } catch (err) {
+                // Bu denemede reklam gösterilemedi, döngü devam
+                continue;
             }
         }
-        showToast("Video reklam bulunamadı.", "error");
+
+        // Hiçbir deneme başarılı olmadı
+        showToast("Reklam şu an mevcut değil. Lütfen daha sonra tekrar dene.", "error");
         cleanup();
     }
 
-    // ========== OTOMATİK REKLAM (sayfa değişiminde) ==========
-    async function startAutoAd() {
-        if (adInProgress) return false;
-        if (state.todayAds >= DAILY_LIMIT) return false;
-
-        adInProgress = true;
-        document.getElementById('ad-loader').style.display = 'flex';
-        const msg = document.querySelector('.loader-text');
-
-        // 1) Push
-        if (typeof window.TelegramAdsController.triggerPush === 'function') {
-            msg.innerText = 'Push reklam aranıyor…';
-            if (await tryOnce(() => window.TelegramAdsController.triggerPush())) {
-                giveReward(); cleanup(); return true;
-            }
-        }
-
-        // 2) Banner
-        if (typeof window.TelegramAdsController.triggerInterstitialBanner === 'function') {
-            msg.innerText = 'Banner reklam aranıyor…';
-            if (await tryOnce(() => window.TelegramAdsController.triggerInterstitialBanner())) {
-                giveReward(); cleanup(); return true;
-            }
-        }
-
-        // 3) Video fallback
-        msg.innerText = 'Video reklam aranıyor…';
-        if (await tryOnce(() => window.TelegramAdsController.triggerInterstitialVideo())) {
-            giveReward(); cleanup(); return true;
-        }
-
-        // Hiçbiri bulunamadı
-        cleanup();
-        showToast("Otomatik reklam bulunamadı.", "error");
-        return false;
-    }
-
-    // Buton
     document.getElementById('btn-watch').addEventListener('click', startVideoAd);
 
-    // Sayfa değiştirme (alt nav)
+    // Sayfa değiştirme (sadece gezinme, reklam yok)
     function switchTab(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         el.classList.add('active');
-
         if (pageId === 'p-home') updateChart();
-
-        // Önceki zamanlayıcıyı iptal et
-        if (autoAdTimer) clearTimeout(autoAdTimer);
-
-        // Eğer limit aşılmamış ve şu an reklam oynamıyorsa HEMEN otomatik reklam başlat
-        if (!adInProgress && state.todayAds < DAILY_LIMIT) {
-            // Küçük bir gecikme (UI'ın oturması için)
-            autoAdTimer = setTimeout(() => {
-                if (!adInProgress && state.todayAds < DAILY_LIMIT) {
-                    startAutoAd();
-                }
-            }, 300);
-        }
     }
 
-    // Grafik
+    // Grafik güncelleme
     function updateChart() {
         const ctx = document.getElementById('chart-weekly')?.getContext('2d');
         if (!ctx) return;
         const e = state.dailyEarnings;
         const data = [e.mon||0, e.tue||0, e.wed||0, e.thu||0, e.fri||0, e.sat||0, e.sun||0];
-        if (weeklyChart) { weeklyChart.data.datasets[0].data = data; weeklyChart.update(); }
-        else {
+        if (weeklyChart) {
+            weeklyChart.data.datasets[0].data = data;
+            weeklyChart.update();
+        } else {
             weeklyChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -397,7 +383,8 @@
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: true,
+                    responsive: true,
+                    maintainAspectRatio: true,
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { beginAtZero: true, ticks: { color:'#7b7b9e', callback:v=>v.toFixed(3) }, grid: { color:'rgba(255,255,255,0.04)' } },
@@ -408,6 +395,7 @@
         }
     }
 
+    // Arayüz güncelleme
     function updateUI() {
         document.getElementById('st-bal').innerText = state.balance.toFixed(4);
         document.getElementById('wd-net-bal').innerText = state.balance.toFixed(4) + ' TON';
@@ -422,6 +410,7 @@
             : '<i class="fa-solid fa-play" style="margin-right:10px;"></i> Reklam İzle';
     }
 
+    // Toast mesajı
     function showToast(msg, type) {
         const t = document.getElementById('toast');
         t.textContent = msg;
@@ -429,25 +418,29 @@
         setTimeout(() => t.classList.remove('visible'), 2500);
     }
 
+    // Çekim talebi
     function handleWithdraw() {
         const addr = document.getElementById('wd-addr').value.trim();
         const amt = parseFloat(document.getElementById('wd-amount').value);
         if (!addr || addr.length < 10) return showToast('Geçerli TON adresi girin.', 'error');
         if (isNaN(amt) || amt < 0.5) return showToast('Minimum 0.5 TON.', 'error');
         if (amt > state.balance) return showToast('Yetersiz bakiye.', 'error');
-        let w = JSON.parse(localStorage.getItem(`tonexa_wd_${uid}`) || '[]');
-        w.push({ uid, addr, amount: amt, date: new Date().toISOString(), status: 'pending' });
-        localStorage.setItem(`tonexa_wd_${uid}`, JSON.stringify(w));
+
+        let withdrawals = JSON.parse(localStorage.getItem(`tonexa_wd_${uid}`) || '[]');
+        withdrawals.push({ uid, addr, amount: amt, date: new Date().toISOString(), status: 'pending' });
+        localStorage.setItem(`tonexa_wd_${uid}`, JSON.stringify(withdrawals));
         showToast('✅ Talebiniz alındı.', 'success');
         document.getElementById('wd-addr').value = '';
         document.getElementById('wd-amount').value = '';
     }
 
+    // Referans linki kopyala
     function copyRef() {
         navigator.clipboard.writeText(`https://t.me/TonexaAdsBot?start=${uid}`);
         showToast('📋 Davet linki kopyalandı.', 'success');
     }
 
+    // Başlangıç
     updateUI();
     updateChart();
 </script>
