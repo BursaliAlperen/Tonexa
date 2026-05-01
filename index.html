@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TonexaAds</title>
+    <title>TonexaAds • Çalışan Reklam</title>
 
-    <!-- Telegram WebApp -->
+    <!-- Telegram WebApp SDK (zorunlu) -->
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-    <!-- RichAds SDK -->
+    <!-- RichAds SDK (sadece 1 kez) -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-    <!-- Chart.js -->
+    <!-- Chart.js (grafik için) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Font Awesome Pro Icons -->
+    <!-- İkonlar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -248,22 +248,29 @@
 </nav>
 
 <script>
-    // Telegram WebApp
+    // ==========================================
+    // 1. ORTAM KONTROLÜ VE TMA BAŞLATMA
+    // ==========================================
     const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+    tg.ready();   // Telegram'a hazır olduğunu bildir
+    tg.expand();  // Tam ekran
 
-    // Kullanıcı kimliği
+    // Kullanıcı ID (Telegram dışında test için dev_user)
     let uid = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "dev_user";
+
+    // ==========================================
+    // 2. DURUM YÖNETİMİ (localStorage)
+    // ==========================================
     const DAILY_LIMIT = 50;
     const REWARD = 0.005;
+    const COOLDOWN_SEC = 15; // Aynı butona tekrar basma süresi
 
-    // Varsayılan durum
     const DEFAULT_STATE = {
         balance: 0,
         todayAds: 0,
         refs: 0,
         refEarn: 0,
+        lastAdTimestamp: 0,
         dailyEarnings: { mon:0, tue:0, wed:0, thu:0, fri:0, sat:0, sun:0 }
     };
 
@@ -275,20 +282,140 @@
 
     let state = loadState();
 
-    // RichAds Controller'ı başlat
-    const richadsController = new window.TelegramAdsController();
-    richadsController.initialize({
-        pubId: "988708",
-        appId: "7273",
-        debug: false
+    // ==========================================
+    // 3. RichAds KONTROLÖRÜ
+    // ==========================================
+    let ads = null; // Controller örneği
+    let adInProgress = false;
+    let cooldownActive = false;
+
+    try {
+        if (typeof window.TelegramAdsController !== 'undefined') {
+            ads = new window.TelegramAdsController();
+            ads.initialize({
+                pubId: "988708",
+                appId: "7279",
+                debug: true  // Konsolda olayları görmek için
+            });
+            console.log("✅ RichAds başlatıldı");
+        } else {
+            console.error("❌ RichAds script'i yüklenemedi!");
+            showToast("Reklam sistemi yüklenemedi.", "error");
+        }
+    } catch (e) {
+        console.error("❌ RichAds başlatma hatası:", e);
+        showToast("Reklam sistemi başlatılamadı.", "error");
+    }
+
+    // ==========================================
+    // 4. REKLAM TETİKLEME FONKSİYONLARI
+    // ==========================================
+    async function showInterstitialAd() {
+        if (!ads) {
+            console.warn("⚠️ Reklam nesnesi yok");
+            return false;
+        }
+        try {
+            await ads.triggerInterstitialVideo();
+            console.log("✅ Reklam başarıyla tamamlandı");
+            return true;
+        } catch (err) {
+            console.warn("⚠️ Reklam gösterilemedi:", err);
+            return false;
+        }
+    }
+
+    // Cooldown kontrolü
+    function canShowAd() {
+        if (state.todayAds >= DAILY_LIMIT) {
+            showToast("Günlük limit doldu.", "error");
+            return false;
+        }
+        if (cooldownActive) {
+            showToast("Lütfen biraz bekleyin…", "error");
+            return false;
+        }
+        if (adInProgress) {
+            return false;
+        }
+        return true;
+    }
+
+    function startCooldown() {
+        cooldownActive = true;
+        document.getElementById('btn-watch').disabled = true;
+        document.getElementById('btn-watch').innerHTML = '<i class="fa-solid fa-clock" style="margin-right:6px;"></i> Bekleyin…';
+        setTimeout(() => {
+            cooldownActive = false;
+            updateUI(); // Butonu tekrar aktif yap
+        }, COOLDOWN_SEC * 1000);
+    }
+
+    // ==========================================
+    // 5. ÖDÜL SİSTEMİ
+    // ==========================================
+    function giveReward() {
+        if (state.todayAds >= DAILY_LIMIT) return;
+        state.balance += REWARD;
+        state.todayAds += 1;
+        state.lastAdTimestamp = Date.now();
+        addDaily(REWARD);
+        saveState(state);
+        updateUI();
+        showToast(`🎉 +${REWARD.toFixed(3)} TON eklendi!`, 'success');
+    }
+
+    // ==========================================
+    // 6. BUTONA TIKLAMA OLAYI
+    // ==========================================
+    document.getElementById('btn-watch').addEventListener('click', async () => {
+        if (!canShowAd()) return;
+
+        adInProgress = true;
+        document.getElementById('ad-loader').style.display = 'flex';
+        const msg = document.querySelector('.loader-text');
+
+        // 3 deneme
+        let rewarded = false;
+        for (let i = 0; i < 3; i++) {
+            msg.innerText = i === 0 ? 'Video reklam aranıyor…' : `Tekrar deneniyor (${i+1}/3)…`;
+            if (i > 0) await new Promise(r => setTimeout(r, 1500));
+
+            const success = await showInterstitialAd();
+            if (success) {
+                giveReward();
+                rewarded = true;
+                break;
+            }
+        }
+
+        if (!rewarded) {
+            showToast("Reklam şu an mevcut değil. Lütfen daha sonra tekrar dene.", "error");
+        }
+
+        document.getElementById('ad-loader').style.display = 'none';
+        adInProgress = false;
+        startCooldown();
     });
 
-    let adInProgress = false;
+    // ==========================================
+    // 7. SAYFA GEZİNTİSİ
+    // ==========================================
+    function switchTab(pageId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        el.classList.add('active');
+        if (pageId === 'p-home') updateChart();
+    }
+
+    // ==========================================
+    // 8. GRAFİK (Chart.js)
+    // ==========================================
     let weeklyChart = null;
 
     function getDayKey() {
-        const keys = ['sun','mon','tue','wed','thu','fri','sat'];
-        return keys[new Date().getDay()];
+        return ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
     }
 
     function addDaily(amt) {
@@ -298,67 +425,6 @@
         updateChart();
     }
 
-    function giveReward() {
-        if (state.todayAds >= DAILY_LIMIT) return;
-        state.balance += REWARD;
-        state.todayAds += 1;
-        addDaily(REWARD);
-        saveState(state);
-        updateUI();
-        showToast(`🎉 +${REWARD.toFixed(3)} TON eklendi!`, 'success');
-    }
-
-    function cleanup() {
-        document.getElementById('ad-loader').style.display = 'none';
-        adInProgress = false;
-    }
-
-    // Reklamı başlat (buton tıklaması)
-    async function startVideoAd() {
-        if (adInProgress) return;
-        if (state.todayAds >= DAILY_LIMIT) {
-            showToast("Günlük limit doldu.", "error");
-            return;
-        }
-
-        adInProgress = true;
-        document.getElementById('ad-loader').style.display = 'flex';
-        const msg = document.querySelector('.loader-text');
-
-        // 3 kez dene
-        for (let i = 0; i < 3; i++) {
-            msg.innerText = i === 0 ? 'Video reklam aranıyor…' : `Tekrar deneniyor (${i+1}/3)…`;
-            if (i > 0) await new Promise(r => setTimeout(r, 1500));
-
-            try {
-                await richadsController.triggerInterstitialVideo();
-                // Reklam başarıyla izlendi ve kapandı, ödülü ver
-                giveReward();
-                cleanup();
-                return;
-            } catch (err) {
-                // Bu denemede reklam gösterilemedi, döngü devam
-                continue;
-            }
-        }
-
-        // Hiçbir deneme başarılı olmadı
-        showToast("Reklam şu an mevcut değil. Lütfen daha sonra tekrar dene.", "error");
-        cleanup();
-    }
-
-    document.getElementById('btn-watch').addEventListener('click', startVideoAd);
-
-    // Sayfa değiştirme (sadece gezinme, reklam yok)
-    function switchTab(pageId, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        el.classList.add('active');
-        if (pageId === 'p-home') updateChart();
-    }
-
-    // Grafik güncelleme
     function updateChart() {
         const ctx = document.getElementById('chart-weekly')?.getContext('2d');
         if (!ctx) return;
@@ -395,7 +461,9 @@
         }
     }
 
-    // Arayüz güncelleme
+    // ==========================================
+    // 9. ARAYÜZ GÜNCELLEME
+    // ==========================================
     function updateUI() {
         document.getElementById('st-bal').innerText = state.balance.toFixed(4);
         document.getElementById('wd-net-bal').innerText = state.balance.toFixed(4) + ' TON';
@@ -404,13 +472,21 @@
         document.getElementById('st-ref-earn').innerText = (state.refEarn || 0).toFixed(4);
 
         const btn = document.getElementById('btn-watch');
-        btn.disabled = state.todayAds >= DAILY_LIMIT;
-        btn.innerHTML = state.todayAds >= DAILY_LIMIT
-            ? '<i class="fa-solid fa-check-circle" style="margin-right:10px;"></i> Limit Doldu'
-            : '<i class="fa-solid fa-play" style="margin-right:10px;"></i> Reklam İzle';
+        if (cooldownActive) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-clock" style="margin-right:6px;"></i> Bekleyin…';
+        } else if (state.todayAds >= DAILY_LIMIT) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-check-circle" style="margin-right:10px;"></i> Limit Doldu';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-play" style="margin-right:10px;"></i> Reklam İzle';
+        }
     }
 
-    // Toast mesajı
+    // ==========================================
+    // 10. TOAST BİLDİRİMLERİ
+    // ==========================================
     function showToast(msg, type) {
         const t = document.getElementById('toast');
         t.textContent = msg;
@@ -418,29 +494,31 @@
         setTimeout(() => t.classList.remove('visible'), 2500);
     }
 
-    // Çekim talebi
+    // ==========================================
+    // 11. ÇEKİM & REFERANS YARDIMCILARI
+    // ==========================================
     function handleWithdraw() {
         const addr = document.getElementById('wd-addr').value.trim();
         const amt = parseFloat(document.getElementById('wd-amount').value);
         if (!addr || addr.length < 10) return showToast('Geçerli TON adresi girin.', 'error');
         if (isNaN(amt) || amt < 0.5) return showToast('Minimum 0.5 TON.', 'error');
         if (amt > state.balance) return showToast('Yetersiz bakiye.', 'error');
-
-        let withdrawals = JSON.parse(localStorage.getItem(`tonexa_wd_${uid}`) || '[]');
-        withdrawals.push({ uid, addr, amount: amt, date: new Date().toISOString(), status: 'pending' });
-        localStorage.setItem(`tonexa_wd_${uid}`, JSON.stringify(withdrawals));
+        let wd = JSON.parse(localStorage.getItem(`tonexa_wd_${uid}`) || '[]');
+        wd.push({ uid, addr, amount: amt, date: new Date().toISOString(), status: 'pending' });
+        localStorage.setItem(`tonexa_wd_${uid}`, JSON.stringify(wd));
         showToast('✅ Talebiniz alındı.', 'success');
         document.getElementById('wd-addr').value = '';
         document.getElementById('wd-amount').value = '';
     }
 
-    // Referans linki kopyala
     function copyRef() {
         navigator.clipboard.writeText(`https://t.me/TonexaAdsBot?start=${uid}`);
         showToast('📋 Davet linki kopyalandı.', 'success');
     }
 
-    // Başlangıç
+    // ==========================================
+    // 12. BAŞLANGIÇ
+    // ==========================================
     updateUI();
     updateChart();
 </script>
