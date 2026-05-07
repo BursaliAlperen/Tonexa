@@ -8,122 +8,141 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Firebase Admin initialization from ENV
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+// --- FIREBASE ADMIN KURULUMU ---
+// .env içerisindeki FIREBASE_SERVICE_ACCOUNT_JSON değişkenini kullanır
+try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("Firebase Admin bağlandı.");
+} catch (error) {
+    console.error("Firebase başlatma hatası: Service Account JSON geçersiz.");
+}
 
 const db = admin.firestore();
-const ADMIN_ID = process.env.ADMIN_ID;
-const APP_PATH = "artifacts/tonexa-pro-w2e";
+const ADMIN_ID = process.env.ADMIN_ID; // Senin Telegram ID'n
+const APP_ID = "tonexa-pro-w2e";
 
-// --- HELPERS ---
-const getUserDoc = (uid) => db.doc(`${APP_PATH}/users/${uid}`);
-const getPublicData = (col) => db.collection(`${APP_PATH}/public/data/${col}`);
+// --- YARDIMCI YOLLAR ---
+const userRef = (uid) => db.collection('artifacts').doc(APP_ID).collection('users').doc(String(uid));
+const withdrawalCol = () => db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('withdrawals');
 
-// --- KEEP ALIVE MECHANISM ---
+// --- KEEP ALIVE (SUNUCUYU UYANIK TUTMA) ---
+// Render/Railway gibi platformlarda 14 dakikada bir ping atar
 setInterval(() => {
     if (process.env.SELF_URL) {
-        axios.get(`${process.env.SELF_URL}/ping`).catch(() => {});
+        axios.get(`${process.env.SELF_URL}/ping`)
+            .then(() => console.log('Keep-alive: Ping başarılı'))
+            .catch((e) => console.log('Keep-alive: Hata payı yok'));
     }
-}, 14 * 60 * 1000); // 14 mins
+}, 14 * 60 * 1000);
 
-app.get('/ping', (req, res) => res.send('pong'));
+app.get('/ping', (req, res) => res.status(200).send('active'));
 
-// --- API ENDPOINTS ---
+// --- BEYİN ENDPOINT'LERİ ---
 
-// Sync & Login
+// 1. Senkronizasyon: Kullanıcı var mı yok mu kontrol eder, yoksa oluşturur.
 app.post('/api/sync', async (req, res) => {
     try {
         const { id, first_name, username, start_param } = req.body;
-        const userRef = getUserDoc(id);
-        let doc = await userRef.get();
+        if (!id) return res.status(400).json({ error: "ID gerekli" });
+
+        const doc = await userRef(id).get();
 
         if (!doc.exists) {
             const newUser = {
                 uid: String(id),
-                name: first_name,
+                name: first_name || 'User',
                 username: username || '',
                 balance: 0,
                 adsToday: 0,
                 totalEarned: 0,
                 role: String(id) === ADMIN_ID ? 'admin' : 'user',
                 invitedBy: start_param || null,
-                joinedAt: admin.firestore.FieldValue.serverTimestamp()
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
             };
-            await userRef.set(newUser);
+            await userRef(id).set(newUser);
             
+            // Referans Bonusu
             if (start_param && start_param !== String(id)) {
-                const inviterRef = getUserDoc(start_param);
-                await inviterRef.update({ balance: admin.firestore.FieldValue.increment(0.005) }).catch(()=>{});
+                await userRef(start_param).update({
+                    balance: admin.firestore.FieldValue.increment(0.01) 
+                }).catch(() => console.log("Davet eden bulunamadı."));
             }
-            doc = await userRef.get();
+            return res.json(newUser);
         }
 
         res.json(doc.data());
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) {
+        res.status(500).json({ error: "Sunucu hatası" });
+    }
 });
 
-// Reward Ad (The Brain Logic)
+// 2. Reklam Ödülü: Bakiye artışını frontend'den değil, buradan yönetir.
 app.post('/api/reward', async (req, res) => {
-    const { userId, token } = req.body; // Token normally verified via Adsgram callback
+    const { userId } = req.body;
     try {
-        const userRef = getUserDoc(userId);
-        const userDoc = await userRef.get();
+        const snap = await userRef(userId).get();
+        if (!snap.exists) return res.status(404).send("User not found");
         
-        if (userDoc.data().adsToday >= 50) return res.status(403).json({ error: "Limit reached" });
+        const userData = snap.data();
+        if (userData.adsToday >= 50) return res.status(403).json({ error: "Daily limit reached" });
 
         const reward = 0.002;
-        await userRef.update({
+        await userRef(userId).update({
             balance: admin.firestore.FieldValue.increment(reward),
             adsToday: admin.firestore.FieldValue.increment(1),
             totalEarned: admin.firestore.FieldValue.increment(reward)
         });
 
-        res.json({ success: true, balance: (userDoc.data().balance + reward) });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+        res.json({ success: true, newBalance: userData.balance + reward });
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
 });
 
-// Admin: Get All Pending Withdrawals
-app.get('/api/admin/withdrawals', async (req, res) => {
-    const { adminId } = req.query;
-    if (adminId !== ADMIN_ID) return res.status(403).send("Unauthorized");
-
-    const snapshot = await getPublicData('withdrawals').get();
-    const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    res.json(list);
-});
-
-// Admin: Approve/Reject Withdrawal
-app.post('/api/admin/action', async (req, res) => {
-    const { adminId, requestId, action } = req.body;
-    if (adminId !== ADMIN_ID) return res.status(403).send("Unauthorized");
-
-    const reqRef = getPublicData('withdrawals').doc(requestId);
-    await reqRef.update({ status: action === 'approve' ? 'completed' : 'rejected' });
-    res.json({ success: true });
-});
-
-// Withdrawal Request
+// 3. Çekim Talebi: Bakiyeyi düşer ve admin onayına gönderir.
 app.post('/api/withdraw', async (req, res) => {
     const { userId, address, amount } = req.body;
     try {
-        const userRef = getUserDoc(userId);
-        const userSnap = await userRef.get();
-        
-        if (userSnap.data().balance < amount) return res.status(400).send("Insufficient");
+        const snap = await userRef(userId).get();
+        if (snap.data().balance < amount || amount < 0.1) {
+            return res.status(400).send("Invalid amount or balance");
+        }
 
         await db.runTransaction(async (t) => {
-            t.update(userRef, { balance: admin.firestore.FieldValue.increment(-amount) });
-            const newReq = getPublicData('withdrawals').doc();
-            t.set(newReq, {
-                userId, address, amount, status: 'pending', createdAt: admin.firestore.FieldValue.serverTimestamp()
+            t.update(userRef(userId), { balance: admin.firestore.FieldValue.increment(-amount) });
+            const newWithdrawal = withdrawalCol().doc();
+            t.set(newWithdrawal, {
+                userId,
+                address,
+                amount,
+                status: 'pending',
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
             });
         });
         res.json({ success: true });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+});
+
+// 4. Admin Paneli: Onay bekleyen talepleri getirir.
+app.get('/api/admin/pending', async (req, res) => {
+    const { adminId } = req.query;
+    if (adminId !== ADMIN_ID) return res.status(403).send("Forbidden");
+
+    try {
+        const snapshot = await withdrawalCol().where('status', '==', 'pending').get();
+        const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.json(results);
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`AAA Server running on ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Tonexa Brain Server is active on port ${PORT}`);
+});
