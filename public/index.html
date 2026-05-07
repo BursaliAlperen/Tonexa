@@ -3,108 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tonexa Pro</title>
-    <!-- RichAds SDK -->
+    <title>Tonexa Ads Pro V3</title>
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-    <script>
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-            pubId: "988708",
-            appId: "7279",
-        });
-    </script>
-    <!-- Other SDKs -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #070B0F; --s: #12181F; --p: #0088CC; --acc: #00F2FE; --text: #fff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; user-select: none; }
+        :root {
+            --bg: #070b10;
+            --card: #121820;
+            --primary: #0088cc;
+            --accent: #00d2ff;
+            --text: #ffffff;
+            --text-dim: #8e97a2;
+            --success: #00c853;
+            --danger: #ff3b30;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+
+        /* Screens */
+        .screen { display: none; padding: 20px; padding-bottom: 100px; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Shared UI Elements */
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+        /* Balance & Stats */
+        .balance-hero { text-align: center; padding: 30px 0; }
+        .balance-hero h1 { font-size: 42px; margin: 10px 0; color: var(--primary); }
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; text-align: center; }
+
+        /* Withdraw Specific */
+        .quick-amounts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .amount-btn { background: var(--card); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; font-size: 14px; }
+        .amount-btn.selected { border-color: var(--primary); background: rgba(0,136,204,0.1); }
         
-        #splash { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: 0.5s; }
-        .spinner { width: 45px; height: 45px; border: 4px solid var(--s); border-top-color: var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+        .input-group input { width: 100%; background: #1a222c; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: white; outline: none; }
+
+        /* Navigation */
+        .nav { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(18,24,32,0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 8px; border: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .nav-item { flex: 1; text-align: center; color: var(--text-dim); text-decoration: none; font-size: 10px; padding: 10px; border-radius: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .nav-item.active { color: var(--primary); background: rgba(0,136,204,0.05); }
+
+        #loading { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #222; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .container { padding: 20px; max-width: 500px; margin: 0 auto; padding-bottom: 110px; }
-        .card { background: var(--s); border-radius: 28px; padding: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,136,204,0.05) 0%, transparent 100%); pointer-events: none; }
-
-        .bal-label { font-size: 11px; color: #637381; font-weight: 800; letter-spacing: 1.5px; }
-        .bal-val { font-size: 44px; font-weight: 800; background: linear-gradient(to right, #fff, var(--p)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0; }
-        
-        .btn { background: var(--p); color: #fff; border: none; padding: 18px; border-radius: 20px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; box-shadow: 0 10px 25px rgba(0, 136, 204, 0.25); }
-        .btn:active { transform: scale(0.96); }
-        .btn:disabled { opacity: 0.5; filter: grayscale(1); }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .stat-box { background: var(--s); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
-
-        .nav { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(18,24,31,0.9); backdrop-filter: blur(20px); border-radius: 25px; display: flex; padding: 12px; border: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .nav-item { flex: 1; text-align: center; color: #55606B; text-decoration: none; font-size: 10px; font-weight: 800; display: flex; flex-direction: column; gap: 5px; }
-        .nav-item.active { color: var(--p); }
-        .nav-item i { font-size: 20px; }
-
-        #admin-panel { display: none; }
-        .request-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 10px; font-size: 12px; border-left: 4px solid var(--p); }
     </style>
 </head>
 <body>
 
-    <div id="splash">
-        <div class="spinner"></div>
-        <div style="margin-top: 20px; font-weight: 800; letter-spacing: 4px; color: var(--p);">TONEXA PRO</div>
+    <div id="loading"><div class="spinner"></div></div>
+
+    <!-- ANA SAYFA -->
+    <div id="home" class="screen active">
+        <div class="balance-hero">
+            <span style="font-size: 12px; color: var(--text-dim); letter-spacing: 2px;">TON BAKİYE</span>
+            <h1 id="ui-bal">0.0000</h1>
+            <div style="color: var(--success); font-size: 13px;">Online: <span id="ui-status">Bağlı</span></div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div style="font-size: 18px; font-weight: bold;" id="ui-ads-today">0/100</div>
+                <div style="font-size: 10px; color: var(--text-dim);">GÜNLÜK GÖREV</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 18px; font-weight: bold;" id="ui-refs">0</div>
+                <div style="font-size: 10px; color: var(--text-dim);">DAVETLER</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px; text-align: center;">
+            <p style="font-size: 13px; color: var(--text-dim);">Her reklamda <b style="color:white;">0.002 TON</b> kazanırsın.</p>
+            <button class="btn" id="ad-btn" onclick="playAd()">
+                <i class="fas fa-play"></i> REKLAM İZLE VE KAZAN
+            </button>
+        </div>
     </div>
 
-    <div class="container" id="view-main">
+    <!-- CÜZDAN / ÇEKİM -->
+    <div id="wallet" class="screen">
+        <h2 style="margin-top: 0;">Cüzdan</h2>
         <div class="card">
-            <div class="bal-label">BAKİYE</div>
-            <div class="bal-val" id="ui-bal">0.0000</div>
-            <div style="font-size: 12px; font-weight: 600; color: var(--acc);">TON COIN <i class="fas fa-gem"></i></div>
-        </div>
-
-        <div class="stat-grid">
-            <div class="stat-box">
-                <div style="font-size: 10px; color:#637381;">DAVETLER</div>
-                <div id="ui-refs" style="font-size: 18px; font-weight: 800;">0</div>
+            <div class="input-group">
+                <label>ÇEKİLEBİLİR MİKTAR</label>
+                <input type="number" id="withdraw-amount" placeholder="0.00" readonly>
             </div>
-            <div class="stat-box">
-                <div style="font-size: 10px; color:#637381;">GÖREVLER</div>
-                <div id="ui-ads" style="font-size: 18px; font-weight: 800;">0 / 100</div>
+            <div class="quick-amounts">
+                <button class="amount-btn" onclick="setAmount(0.10)">0.10</button>
+                <button class="amount-btn" onclick="setAmount(0.50)">0.50</button>
+                <button class="amount-btn" onclick="setAmount('max')">MAX</button>
             </div>
-        </div>
-
-        <div class="card">
-            <button class="btn" id="ad-btn" onclick="playRewardedAd()">
-                <i class="fas fa-play-circle"></i> ÖDÜLLÜ REKLAM
+            <div class="input-group">
+                <label>TON CÜZDAN ADRESİ</label>
+                <input type="text" id="wallet-address-display" placeholder="Ayarlardan adres ekleyin" readonly>
+            </div>
+            <button class="btn" id="withdraw-btn" onclick="submitWithdraw()">
+                <i class="fas fa-paper-plane"></i> ÇEKİM TALEBİ GÖNDER
             </button>
-            <p style="font-size: 10px; text-align: center; color: #55606B; margin-top: 12px;">+0.002 TON Her İzleme Başına</p>
+            <p style="font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 15px;">
+                * Minimum çekim 0.10 TON'dur. Talepler 24 saat içinde işlenir.
+            </p>
+        </div>
+    </div>
+
+    <!-- AYARLAR / PROFİL -->
+    <div id="settings" class="screen">
+        <h2 style="margin-top: 0;">Ayarlar</h2>
+        <div class="card">
+            <div class="input-group">
+                <label>AD SOYAD</label>
+                <input type="text" id="set-name" readonly>
+            </div>
+            <div class="input-group">
+                <label>TON CÜZDAN ADRESİ (Kaydet/Güncelle)</label>
+                <input type="text" id="set-wallet" placeholder="UQ... veya EQ... ile başlayan adres">
+            </div>
+            <button class="btn btn-outline" onclick="saveWallet()">
+                <i class="fas fa-save"></i> ADRESİ KAYDET
+            </button>
         </div>
 
-        <div id="admin-panel" class="card">
-            <h3 style="color: gold; font-size: 14px;"><i class="fas fa-user-shield"></i> ADMİN PANELİ</h3>
-            <div id="admin-list" style="max-height: 200px; overflow-y: auto;">Yükleniyor...</div>
+        <div class="card" style="text-align: center;">
+            <p style="font-size: 13px; margin-bottom: 15px;">Arkadaşlarını davet et, her kayıt olan için <b>0.01 TON</b> kazan!</p>
+            <button class="btn" onclick="copyRef()">
+                <i class="fas fa-user-plus"></i> REFERANS LİNKİNİ KOPYALA
+            </button>
         </div>
     </div>
 
     <nav class="nav">
-        <a href="#" class="nav-item active"><i class="fas fa-home"></i> ANA SAYFA</a>
-        <a href="#" class="nav-item" onclick="copyRef()"><i class="fas fa-user-plus"></i> DAVET ET</a>
-        <a href="#" class="nav-item" onclick="handleWithdraw()"><i class="fas fa-wallet"></i> CÜZDAN</a>
+        <a href="javascript:void(0)" onclick="switchTab('home', this)" class="nav-item active">
+            <i class="fas fa-home"></i><span>ANA SAYFA</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('wallet', this)" class="nav-item">
+            <i class="fas fa-wallet"></i><span>CÜZDAN</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('settings', this)" class="nav-item">
+            <i class="fas fa-cog"></i><span>AYARLAR</span>
+        </a>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const SERVER_URL = "https://senin-app-url.onrender.com"; // DEPLOY SONRASI GÜNCELLE
-        let state = null;
+        const API = "https://tonexa.onrender.com"; // Burayı kendi Render URL'inle değiştir
+        let userState = null;
+
+        // Init Ads
+        if (window.TelegramAdsController) {
+            window.TelegramAdsController.initialize({ pubId: "988708", appId: "7279" });
+        }
 
         async function init() {
             tg.expand();
-            tg.ready();
-            const user = tg.initDataUnsafe.user || { id: "6296765793", first_name: "Test" };
+            const user = tg.initDataUnsafe.user || { id: "6296765793", first_name: "Test User" };
             
+            document.getElementById('set-name').value = user.first_name;
+
             try {
-                const res = await fetch(`${SERVER_URL}/api/sync`, {
+                const res = await fetch(`${API}/api/sync`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -114,96 +180,133 @@
                         start_param: tg.initDataUnsafe.start_param
                     })
                 });
-                state = await res.json();
-                render();
-                if(state.role === 'admin') loadAdminData();
+                userState = await res.json();
+                updateUI();
             } catch (e) {
                 tg.showAlert("Sunucu bağlantı hatası!");
             } finally {
-                document.getElementById('splash').style.opacity = '0';
-                setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function render() {
-            document.getElementById('ui-bal').innerText = state.balance.toFixed(4);
-            document.getElementById('ui-refs').innerText = state.totalInvited || 0;
-            document.getElementById('ui-ads').innerText = `${state.adsToday} / 100`;
-            if(state.role === 'admin') document.getElementById('admin-panel').style.display = 'block';
+        function updateUI() {
+            document.getElementById('ui-bal').innerText = userState.balance.toFixed(4);
+            document.getElementById('ui-ads-today').innerText = `${userState.adsToday}/100`;
+            document.getElementById('ui-refs').innerText = userState.totalInvited || 0;
+            
+            // Cüzdan Adresi Sync
+            const wInput = document.getElementById('set-wallet');
+            const wDisplay = document.getElementById('wallet-address-display');
+            if (userState.walletAddress) {
+                wInput.value = userState.walletAddress;
+                wDisplay.value = userState.walletAddress;
+            }
         }
 
-        async function playRewardedAd() {
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function setAmount(val) {
+            const input = document.getElementById('withdraw-amount');
+            if (val === 'max') {
+                input.value = userState.balance.toFixed(2);
+            } else {
+                input.value = val;
+            }
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        async function saveWallet() {
+            const addr = document.getElementById('set-wallet').value.trim();
+            if (addr.length < 10) return tg.showAlert("Geçerli bir TON adresi girin!");
+
+            try {
+                const res = await fetch(`${API}/api/user/update-wallet`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ userId: userState.uid, walletAddress: addr })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userState.walletAddress = addr;
+                    updateUI();
+                    tg.showAlert("Cüzdan adresiniz başarıyla kaydedildi!");
+                }
+            } catch (e) { tg.showAlert("Hata oluştu!"); }
+        }
+
+        async function playAd() {
             const btn = document.getElementById('ad-btn');
-            btn.disabled = true;
+            if (userState.adsToday >= 100) return tg.showAlert("Günlük limite ulaştınız!");
             
-            // RichAds Rewarded Ad
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> YÜKLENİYOR...';
+
             window.TelegramAdsController.playAd({
                 type: 'rewarded',
                 onCompleted: async () => {
-                    const res = await fetch(`${SERVER_URL}/api/reward`, {
+                    const res = await fetch(`${API}/api/reward`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ userId: state.uid, type: 'rewarded' })
+                        body: JSON.stringify({ userId: userState.uid })
                     });
                     const data = await res.json();
-                    state.balance = data.balance;
-                    state.adsToday += 1;
-                    render();
+                    userState.balance = data.balance;
+                    userState.adsToday += 1;
+                    updateUI();
                     tg.HapticFeedback.notificationOccurred('success');
+                    resetAdBtn();
                 },
-                onFailed: () => tg.showAlert("Reklam yüklenemedi."),
-                onSkipped: () => tg.showAlert("Ödül için reklamı bitirmelisiniz.")
+                onFailed: () => {
+                    tg.showAlert("Reklam yüklenemedi.");
+                    resetAdBtn();
+                }
             });
-            
-            setTimeout(() => btn.disabled = false, 2000);
+        }
+
+        function resetAdBtn() {
+            const btn = document.getElementById('ad-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play"></i> REKLAM İZLE VE KAZAN';
+        }
+
+        async function submitWithdraw() {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const addr = userState.walletAddress;
+
+            if (!addr) return tg.showAlert("Lütfen önce Ayarlar'dan cüzdan adresinizi kaydedin!");
+            if (isNaN(amount) || amount < 0.10) return tg.showAlert("Minimum çekim 0.10 TON'dur.");
+            if (amount > userState.balance) return tg.showAlert("Yetersiz bakiioe!");
+
+            try {
+                const res = await fetch(`${API}/api/withdraw`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ userId: userState.uid, address: addr, amount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userState.balance -= amount;
+                    updateUI();
+                    tg.showAlert("Çekim talebiniz alındı. İncelendikten sonra gönderilecektir.");
+                }
+            } catch (e) { tg.showAlert("Sunucu hatası!"); }
         }
 
         function copyRef() {
-            const link = `https://t.me/TonexaAdsBot?start=${state.uid}`;
-            // Standart kopyalama
-            const input = document.createElement('input');
-            input.value = link;
-            document.body.appendChild(input);
-            input.select();
+            const link = `https://t.me/TonexaAdsBot?start=${userState.uid}`;
+            const el = document.createElement('textarea');
+            el.value = link;
+            document.body.appendChild(el);
+            el.select();
             document.execCommand('copy');
-            document.body.removeChild(input);
-            tg.showAlert("Referans linkin kopyalandı!");
-        }
-
-        async function handleWithdraw() {
-            const addr = prompt("TON Cüzdan Adresi:");
-            if(!addr) return;
-            const res = await fetch(`${SERVER_URL}/api/withdraw`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId: state.uid, address: addr, amount: 0.1 })
-            });
-            if(res.ok) tg.showAlert("Çekim talebi oluşturuldu!");
-            else tg.showAlert("Hata! Bakiye yetersiz veya tutar geçersiz.");
-        }
-
-        async function loadAdminData() {
-            const res = await fetch(`${SERVER_URL}/api/admin/list?adminId=${state.uid}`);
-            const data = await res.json();
-            const list = document.getElementById('admin-list');
-            list.innerHTML = data.length ? data.map(r => `
-                <div class="request-item">
-                    User: ${r.userId} <br> Mik: ${r.amount} TON <br> Adr: ${r.address}
-                    <div style="margin-top:8px;">
-                        <button onclick="adminAction('${r.id}', 'approved')">ONAY</button>
-                        <button onclick="adminAction('${r.id}', 'rejected')">RED</button>
-                    </div>
-                </div>
-            `).join('') : "Bekleyen talep yok.";
-        }
-
-        async function adminAction(requestId, status) {
-            await fetch(`${SERVER_URL}/api/admin/action`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ adminId: state.uid, requestId, status })
-            });
-            loadAdminData();
+            document.body.removeChild(el);
+            tg.showAlert("Referans linkiniz kopyalandı!");
         }
 
         window.onload = init;
