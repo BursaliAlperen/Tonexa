@@ -236,6 +236,7 @@
         <button class="nav-item" onclick="openPage('swap')"><i class="fas fa-right-left text-xl"></i></button>
         <button class="nav-item" onclick="openPage('friends')"><i class="fas fa-users-gear text-xl"></i></button>
         <button class="nav-item" onclick="openPage('promo')"><i class="fas fa-tags text-xl"></i></button>
+        <button class="nav-item" onclick="openPage('records')"><i class="fas fa-folder-open text-xl"></i></button>
     </div>
 
     <!-- Game -->
@@ -279,319 +280,58 @@
     <div id="toast" class="sketch-font">RECORD UPDATED</div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        
-        let state = {
-            art: 500,
-            ton: 0.150,
-            spins: 0,
-            wallet: localStorage.getItem('art_wallet') || '',
-            minWithdraw: 0.2,
-            hasClaimedGift: localStorage.getItem('gift_claimed_v2') === 'true'
-        };
+const state = { art:0, ton:0, spins:0, wallet:'', minWithdraw:0.2, records:{wallet:[],swap:[],friends:[],promo:[]} };
+const userId = 'demo';
+const sectors = [
+  { label:'15 ART', color:'#fff', text:'#000' },
+  { label:'0.01 TON', color:'#0088cc', text:'#fff' },
+  { label:'25 ART', color:'#f8f9fa', text:'#000' },
+  { label:'20 ART', color:'#1a1a1a', text:'#fff' },
+  { label:'50 ART', color:'#fff', text:'#000' },
+  { label:'10 ART', color:'#0088cc', text:'#fff' },
+  { label:'35 ART', color:'#dfe6e9', text:'#000' },
+  { label:'5 ART', color:'#2d3436', text:'#fff' }
+];
+let rotation = 0; let spinning = false;
 
-        const sectors = [
-            { label: "15 ART", val: 15, type: 'art', color: "#fff", text: "#000" },
-            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#0088cc", text: "#fff" },
-            { label: "25 ART", val: 25, type: 'art', color: "#f8f9fa", text: "#000" },
-            { label: "0.02 TON", val: 0.02, type: 'ton', color: "#1a1a1a", text: "#fff" },
-            { label: "20 ART", val: 20, type: 'art', color: "#fff", text: "#000" },
-            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#0088cc", text: "#fff" },
-            { label: "50 ART", val: 50, type: 'art', color: "#dfe6e9", text: "#000" },
-            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#2d3436", text: "#fff" }
-        ];
-
-        let rotation = 0;
-        let spinning = false;
-
-        function init() {
-            tg.expand();
-            drawWheel();
-            updateUI();
-            
-            setTimeout(() => {
-                document.getElementById('loader').classList.add('hidden');
-                if(!state.hasClaimedGift) showGiftPopup();
-            }, 1500);
-        }
-
-        function updateUI() {
-            document.getElementById('stat-art').innerText = Math.floor(state.art);
-            document.getElementById('stat-ton').innerText = state.ton.toFixed(3);
-            document.getElementById('stat-spins').innerText = state.spins;
-
-            const dots = document.getElementById('energy-dots');
-            dots.innerHTML = '';
-            for(let i=0; i<5; i++) {
-                const d = document.createElement('div');
-                d.className = `w-2 h-2 rounded-sm border border-black rotate-45 ${i < state.spins ? 'bg-blue-500' : 'bg-transparent'}`;
-                dots.appendChild(d);
-            }
-        }
-
-        function drawWheel() {
-            const canvas = document.getElementById('wheel-canvas');
-            const ctx = canvas.getContext('2d');
-            const slice = (Math.PI * 2) / sectors.length;
-
-            sectors.forEach((s, i) => {
-                const angle = i * slice;
-                ctx.beginPath();
-                ctx.fillStyle = s.color;
-                ctx.moveTo(400, 400);
-                ctx.arc(400, 400, 385, angle, angle + slice);
-                ctx.fill();
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = "#1a1a1a";
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(400, 400);
-                ctx.rotate(angle + slice/2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = s.text;
-                ctx.font = "bold 36px Inter";
-                ctx.fillText(s.label, 350, 14);
-                ctx.restore();
-            });
-        }
-
-        function showGiftPopup() {
-            const overlay = document.getElementById('modal-overlay');
-            const title = document.getElementById('modal-title');
-            const content = document.getElementById('modal-content');
-            document.getElementById('modal-stamp').innerText = "CERTIFIED";
-            
-            title.innerText = "INITIAL GRANT";
-            content.innerHTML = `
-                <div class="text-center py-6">
-                    <div class="relative inline-block mb-4">
-                        <i class="fas fa-box-open text-7xl text-orange-400"></i>
-                        <div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 font-black rounded border-2 border-black">URGENT</div>
-                    </div>
-                    <p class="sketch-font text-2xl mb-2">Artisan Welcome Pack</p>
-                    <p class="text-[10px] opacity-40 mb-6 uppercase">Assigned to your engineering profile</p>
-                    <div class="premium-card p-6 bg-blue-50 mb-8 border-dashed flex justify-around items-center">
-                        <div class="text-center"><span class="block font-black text-2xl">+2</span><span class="text-[8px] uppercase">Spins</span></div>
-                        <div class="h-8 w-[2px] bg-black opacity-10"></div>
-                        <div class="text-center"><span class="block font-black text-2xl">50</span><span class="text-[8px] uppercase">Art</span></div>
-                    </div>
-                    <button onclick="claimGift()" class="w-full premium-card p-5 bg-black text-white font-black italic text-xl">OPEN RECORD</button>
-                </div>
-            `;
-            overlay.classList.add('active');
-        }
-
-        window.claimGift = () => {
-            state.spins += 2;
-            state.art += 50;
-            state.hasClaimedGift = true;
-            localStorage.setItem('gift_claimed_v2', 'true');
-            updateUI();
-            closePage();
-            showToast("GRANTS RECEIVED");
-        };
-
-        function handleSpin() {
-            if (spinning || state.spins <= 0) {
-                if(state.spins <= 0) showToast("LOW ENERGY");
-                return;
-            }
-            spinning = true;
-            state.spins--;
-            updateUI();
-
-            const extra = 8 + Math.random() * 6;
-            const deg = Math.floor(Math.random() * 360);
-            rotation += (extra * 360) + deg;
-            
-            document.getElementById('wheel-canvas').style.transform = `rotate(${rotation}deg)`;
-
-            setTimeout(() => {
-                spinning = false;
-                const actual = rotation % 360;
-                const index = Math.floor((360 - (actual % 360) + 270) % 360 / (360/sectors.length));
-                const win = sectors[index];
-                
-                if(win.type === 'art') state.art += win.val;
-                else state.ton += win.val;
-
-                updateUI();
-                showToast(`GAINED: ${win.label}`);
-            }, 6000);
-        }
-
-        function openPage(page) {
-            const overlay = document.getElementById('modal-overlay');
-            const content = document.getElementById('modal-content');
-            const title = document.getElementById('modal-title');
-            const stamp = document.getElementById('modal-stamp');
-            
-            overlay.classList.remove('closing');
-            overlay.classList.add('active');
-
-            switch(page) {
-                case 'promo':
-                    stamp.innerText = "MARKETING";
-                    title.innerText = "PROMO CODES";
-                    content.innerHTML = `
-                        <div class="space-y-5">
-                            <div class="premium-card p-4 bg-orange-50 border-dashed text-center">
-                                <i class="fab fa-telegram text-4xl text-blue-500 mb-2"></i>
-                                <p class="font-black text-sm uppercase">Resmi Telegram Kanalı</p>
-                                <p class="text-[10px] opacity-60 mb-3">Kodlar ve güncellemeler anlık olarak kanalda paylaşılmaktadır!</p>
-                                <a href="#" class="inline-block px-6 py-2 bg-blue-500 text-white font-black text-xs rounded border-2 border-black">KANALA KATIL</a>
-                            </div>
-                            <div class="relative">
-                                <p class="text-[9px] font-black opacity-40 mb-1 uppercase px-1">Giriş Yap</p>
-                                <input type="text" id="p-code" class="w-full p-4 border-2 border-black rounded-lg text-center font-bold tracking-widest uppercase outline-none sketch-font text-xl" placeholder="KOD-GIRINIZ">
-                            </div>
-                            <button onclick="redeem()" class="w-full premium-card p-4 bg-black text-white font-black italic">AKTİVE ET</button>
-                        </div>
-                    `;
-                    break;
-                case 'wallet':
-                    stamp.innerText = "FINANCIAL";
-                    title.innerText = "TON WITHDRAW";
-                    content.innerHTML = `
-                        <div class="space-y-5">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="premium-card p-3 bg-gray-50">
-                                    <span class="text-[8px] block opacity-40">MINIMUM</span>
-                                    <span class="font-black">0.200 TON</span>
-                                </div>
-                                <div class="premium-card p-3 bg-gray-50 text-right">
-                                    <span class="text-[8px] block opacity-40">AVAILABLE</span>
-                                    <span class="font-black text-blue-600">${state.ton.toFixed(3)} TON</span>
-                                </div>
-                            </div>
-                            <div class="premium-card p-4">
-                                <p class="text-[10px] font-black opacity-40 mb-2 uppercase">Destinasyon Adresi</p>
-                                <input type="text" id="w-addr" value="${state.wallet}" class="w-full font-mono text-xs outline-none border-b-2 border-dotted border-black pb-1" placeholder="UQA123...">
-                            </div>
-                            <div class="premium-card p-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <p class="text-[10px] font-black opacity-40 uppercase">Çekilecek Miktar</p>
-                                    <button onclick="setMax()" class="text-[9px] bg-black text-white px-2 py-0.5 rounded font-black">MAX</button>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="w-amount" class="w-full text-2xl font-black outline-none" placeholder="0.000">
-                                    <span class="font-black opacity-30">TON</span>
-                                </div>
-                            </div>
-                            <button onclick="doWithdraw()" class="w-full premium-card p-5 bg-blue-600 text-white font-black italic text-lg">HESABA AKTAR</button>
-                            <p class="text-[8px] text-center opacity-40 italic">Not: Transferler teknik incelemeden sonra 24 saat içinde tamamlanır.</p>
-                        </div>
-                    `;
-                    break;
-                case 'swap':
-                    stamp.innerText = "EXCHANGE";
-                    title.innerText = "ASSET SWAP";
-                    content.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="premium-card p-5 bg-white">
-                                <div class="flex justify-between text-[10px] font-black opacity-40 mb-2 uppercase"><span>Giriş</span><span>Bakiye: ${state.art}</span></div>
-                                <div class="flex items-center gap-3">
-                                    <input type="number" id="s-val" oninput="calc(this.value)" class="text-3xl font-black w-full outline-none" placeholder="1000">
-                                    <span class="font-black">ART</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-center -my-2 relative z-10">
-                                <div class="bg-black text-white p-2 rounded-full border-2 border-white shadow-lg"><i class="fas fa-arrow-down"></i></div>
-                            </div>
-                            <div class="premium-card p-5 bg-blue-50">
-                                <div class="flex justify-between text-[10px] font-black opacity-40 mb-2 uppercase"><span>Çıkış (Tahmini)</span></div>
-                                <div class="flex items-center gap-3">
-                                    <div id="calc-res" class="text-3xl font-black text-blue-600">0.000</div>
-                                    <span class="font-black text-blue-600">TON</span>
-                                </div>
-                            </div>
-                            <div class="p-3 border-2 border-black border-dashed rounded bg-gray-50">
-                                <p class="text-[9px] font-black opacity-50 uppercase">Swap Şartı</p>
-                                <p class="text-[10px] italic">10,000 ART = 1 TON oranında teknik dönüşüm uygulanır.</p>
-                            </div>
-                            <button onclick="executeSwap()" class="w-full premium-card p-5 bg-black text-white font-black italic">DÖNÜŞÜMÜ BAŞLAT</button>
-                        </div>
-                    `;
-                    break;
-                case 'friends':
-                    stamp.innerText = "NETWORK";
-                    title.innerText = "ENGINEER LOG";
-                    content.innerHTML = `
-                        <div class="space-y-4">
-                            <div class="premium-card p-6 text-center bg-yellow-50">
-                                <p class="sketch-font text-xl mb-2">Ağını Genişlet!</p>
-                                <p class="text-[10px] opacity-60 uppercase mb-4">Her yeni mühendis için +1 Enerji kaydı açılır.</p>
-                                <div class="flex justify-center gap-4">
-                                    <div class="text-center"><span class="block font-black text-lg">0</span><span class="text-[8px] opacity-40 uppercase">Referans</span></div>
-                                    <div class="text-center"><span class="block font-black text-lg text-green-600">+0</span><span class="text-[8px] opacity-40 uppercase">Toplam Ton</span></div>
-                                </div>
-                            </div>
-                            <div class="premium-card p-4 border-dashed">
-                                <p class="text-[10px] font-black opacity-40 mb-2 uppercase">Davet Linkin</p>
-                                <div class="bg-gray-100 p-2 text-[10px] font-mono break-all border border-black rounded">https://t.me/tonexa_bot?start=user${Math.floor(Math.random()*9999)}</div>
-                            </div>
-                            <button onclick="copyLink()" class="w-full premium-card p-5 bg-black text-white font-black italic">LİNKİ KOPYALA</button>
-                        </div>
-                    `;
-                    break;
-            }
-        }
-
-        function closePage() {
-            const overlay = document.getElementById('modal-overlay');
-            overlay.classList.add('closing');
-            setTimeout(() => {
-                overlay.classList.remove('active');
-                overlay.classList.remove('closing');
-            }, 400);
-        }
-
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
-
-        // Logic Functions
-        window.setMax = () => {
-            document.getElementById('w-amount').value = state.ton.toFixed(3);
-        };
-
-        window.doWithdraw = () => {
-            const amt = parseFloat(document.getElementById('w-amount').value);
-            const addr = document.getElementById('w-addr').value;
-            
-            if(!addr || addr.length < 10) return tg.showAlert("Geçersiz cüzdan adresi!");
-            if(isNaN(amt) || amt < state.minWithdraw) return tg.showAlert(`Minimum çekim miktarı ${state.minWithdraw} TON olmalıdır!`);
-            if(amt > state.ton) return tg.showAlert("Yetersiz bakiye!");
-
-            state.wallet = addr;
-            localStorage.setItem('art_wallet', addr);
-            tg.showAlert(`Çekim talebi alındı: ${amt} TON.\nİncelemeden sonra gönderilecektir.`);
-            closePage();
-        };
-
-        window.calc = (v) => {
-            document.getElementById('calc-res').innerText = (v * 0.0001).toFixed(3);
-        };
-
-        window.redeem = () => {
-            const code = document.getElementById('p-code').value;
-            if(!code) return;
-            tg.showAlert("Bu kod sistemde taranıyor...");
-            closePage();
-            showToast("PROCESS LOGGED");
-        };
-
-        window.copyLink = () => {
-            showToast("LINK COPIED");
-        };
-
-        window.onload = init;
+async function api(url, method='GET', body) {
+  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined });
+  if (!res.ok) throw new Error((await res.json()).error || 'ERR');
+  return res.json();
+}
+async function init(){
+  Object.assign(state, await api(`/api/state?userId=${userId}`));
+  drawWheel(); updateUI();
+  document.getElementById('loader').classList.add('hidden');
+}
+function updateUI(){
+ document.getElementById('stat-art').innerText=Math.floor(state.art);
+ document.getElementById('stat-ton').innerText=Number(state.ton).toFixed(3);
+ document.getElementById('stat-spins').innerText=state.spins;
+ const dots=document.getElementById('energy-dots'); dots.innerHTML='';
+ for(let i=0;i<5;i++){ const d=document.createElement('div'); d.className=`w-2 h-2 rounded-sm border border-black rotate-45 ${i < state.spins ? 'bg-blue-500':'bg-transparent'}`; dots.appendChild(d); }
+}
+function drawWheel(){ const c=document.getElementById('wheel-canvas'),ctx=c.getContext('2d'); const slice=(Math.PI*2)/sectors.length; sectors.forEach((s,i)=>{const angle=i*slice;ctx.beginPath();ctx.fillStyle=s.color;ctx.moveTo(400,400);ctx.arc(400,400,385,angle,angle+slice);ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#1a1a1a';ctx.stroke();ctx.save();ctx.translate(400,400);ctx.rotate(angle+slice/2);ctx.textAlign='right';ctx.fillStyle=s.text;ctx.font='bold 36px Inter';ctx.fillText(s.label,350,14);ctx.restore();}); }
+function showToast(m){const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800)}
+async function handleSpin(){ if(spinning) return; if(state.spins<=0){showAdPrompt(); return;} spinning=true; const res=await api('/api/spin','POST',{userId}); state.spins=res.spins; state.art=res.art; state.ton=res.ton; updateUI(); const extra=8+Math.random()*6; rotation += (extra*360)+Math.floor(Math.random()*360); document.getElementById('wheel-canvas').style.transform=`rotate(${rotation}deg)`; setTimeout(()=>{spinning=false;showToast(`GAINED: ${res.win.label}`);},6000); }
+function showAdPrompt(){ openModal('AD REQUIRED', `<p class="text-xs mb-4">Spin bitti. Devam etmek için reklam izle.</p><button onclick="watchAd()" class="w-full premium-card p-4 bg-black text-white font-black">REKLAM İZLE (+1)</button>`); }
+async function watchAd(){ await api('/api/watch-ad','POST',{userId}); const st=await api(`/api/state?userId=${userId}`); Object.assign(state,st); updateUI(); closePage(); showToast('ENERGY +1'); }
+function openModal(title, html, stamp='TOP SECRET'){document.getElementById('modal-title').innerText=title;document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-stamp').innerText=stamp;document.getElementById('modal-overlay').classList.add('active');}
+function closePage(){document.getElementById('modal-overlay').classList.remove('active');}
+function openPage(page){
+ if(page==='promo') return openModal('PROMO CODES',`<input id="p-code" class="w-full p-3 border-2 border-black" placeholder="KOD"><button onclick="redeem()" class="w-full mt-3 premium-card p-3 bg-black text-white font-black">AKTİVE ET</button><div class='mt-4 text-xs'>Kanal: <a class='text-blue-600' href='https://t.me/TonexaSpinChannel' target='_blank'>@TonexaSpinChannel</a><br>Bot: @TonexaSpinBot</div>`,'MARKETING');
+ if(page==='wallet') return openModal('TON WITHDRAW',`<input id="w-addr" class="w-full p-3 border-2 border-black mb-3" value="${state.wallet}" placeholder="Wallet"><input id="w-amount" class="w-full p-3 border-2 border-black" placeholder="0.200"><button onclick="doWithdraw()" class="w-full mt-3 premium-card p-3 bg-blue-600 text-white font-black">HESABA AKTAR</button>`,'FINANCIAL');
+ if(page==='swap') return openModal('ASSET SWAP',`<input id="s-val" class="w-full p-3 border-2 border-black" placeholder="1000" oninput="calc(this.value)"><p class="my-2">≈ <span id="calc-res">0.000</span> TON</p><button onclick="executeSwap()" class="w-full premium-card p-3 bg-black text-white font-black">DÖNÜŞÜM</button>`,'EXCHANGE');
+ if(page==='friends') return openModal('ENGINEER LOG',`<p class='text-xs'>Referans sistemi backend üzerinde tutulur.</p>`,'NETWORK');
+ if(page==='records') return renderRecords();
+}
+function calc(v){document.getElementById('calc-res').innerText=(Number(v||0)/10000).toFixed(3)}
+async function executeSwap(){try{const art=Number(document.getElementById('s-val').value||0);const r=await api('/api/swap','POST',{userId,art});state.art=r.art;state.ton=r.ton;updateUI();showToast('SWAP OK');closePage();}catch(e){showToast('SWAP ERROR')}}
+async function doWithdraw(){try{const wallet=document.getElementById('w-addr').value;const amount=Number(document.getElementById('w-amount').value||0);const r=await api('/api/withdraw','POST',{userId,wallet,amount});state.ton=r.ton;state.wallet=r.wallet;updateUI();showToast('WITHDRAW SENT');closePage();}catch(e){showToast('WITHDRAW ERROR')}}
+async function redeem(){try{await api('/api/redeem','POST',{userId,code:document.getElementById('p-code').value});const st=await api(`/api/state?userId=${userId}`);Object.assign(state,st);updateUI();showToast('PROMO OK');closePage();}catch(e){showToast('INVALID CODE')}}
+async function renderRecords(){const rec=await api(`/api/records?userId=${userId}`); const tab=(k,a)=>`<div class='premium-card p-3'><div class='font-black mb-2 uppercase text-xs'>${k}</div>${(a||[]).slice(0,6).map(x=>`<div class='text-[10px] mb-1'>• ${new Date(x.ts).toLocaleString()} - ${x.message}</div>`).join('')||'<div class="text-[10px] opacity-40">Kayıt yok</div>'}</div>`; openModal('RECORDS',`<div class='space-y-3'>${tab('Wallet',rec.wallet)}${tab('Swap',rec.swap)}${tab('Friends',rec.friends)}${tab('Promo',rec.promo)}</div>`,'ARCHIVE'); }
+init();
     </script>
 </body>
 </html>
 
-```
