@@ -1,337 +1,71 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TONEXA ELITE • Artisan Records</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Fira+Code:wght@400;700&family=Inter:wght@400;900&display=swap');
-
-        :root {
-            --sketch-black: #1a1a1a;
-            --ton-blue: #0088cc;
-            --blueprint-bg: #f0f4f8;
-            --grid-line: #d1dce5;
-            --accent-red: #ff4757;
-        }
-
-        body {
-            background-color: var(--blueprint-bg);
-            background-image: 
-                linear-gradient(var(--grid-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 25px 25px;
-            font-family: 'Inter', sans-serif;
-            color: var(--sketch-black);
-            overflow: hidden;
-            height: 100vh;
-            margin: 0;
-            touch-action: manipulation;
-        }
-
-        .sketch-font { font-family: 'Architects Daughter', cursive; }
-
-        /* AAA El Çizimi Kartlar */
-        .premium-card {
-            background: white;
-            border: 2.5px solid var(--sketch-black);
-            box-shadow: 6px 6px 0px var(--sketch-black);
-            border-radius: 2px 15px 5px 12px;
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .premium-card:active {
-            transform: translate(3px, 3px);
-            box-shadow: 2px 2px 0px var(--sketch-black);
-        }
-
-        /* Navigasyon & REC Etiketleri */
-        .side-nav {
-            position: fixed;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 100;
-        }
-
-        .nav-item {
-            width: 54px;
-            height: 54px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border: 2px solid var(--sketch-black);
-            border-radius: 8px 12px 6px 10px;
-            box-shadow: 4px 4px 0px var(--sketch-black);
-            position: relative;
-            transition: 0.2s;
-        }
-
-        .nav-item::after {
-            content: "REC";
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            font-size: 8px;
-            font-weight: 900;
-            color: white;
-            background: var(--accent-red);
-            padding: 1px 4px;
-            border: 1.5px solid var(--sketch-black);
-            border-radius: 3px;
-            letter-spacing: 1px;
-        }
-
-        .nav-item:active { transform: scale(0.9); }
-
-        /* Çark */
-        .wheel-container {
-            position: relative;
-            width: 330px;
-            height: 330px;
-            border: 10px double var(--sketch-black);
-            border-radius: 50%;
-            background: white;
-            padding: 4px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-        }
-
-        #wheel-canvas {
-            width: 100%;
-            height: 100%;
-            transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1);
-        }
-
-        .pointer {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 60;
-            font-size: 40px;
-            color: var(--sketch-black);
-            filter: drop-shadow(2px 2px 0px #fff);
-        }
-
-        /* Modal Sistemi */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(240, 244, 248, 0.95);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.4s ease-in-out;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-body {
-            width: 92%;
-            max-width: 400px;
-            transform: scale(0.85) translateY(60px);
-            opacity: 0;
-            transition: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            background-image: radial-gradient(var(--grid-line) 0.5px, transparent 0.5px);
-            background-size: 15px 15px;
-        }
-
-        .modal-overlay.active .modal-body {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-        }
-
-        /* Damgalar (Stamps) */
-        .stamp {
-            border: 3px solid rgba(255, 71, 87, 0.4);
-            color: rgba(255, 71, 87, 0.4);
-            padding: 4px 8px;
-            font-weight: 900;
-            text-transform: uppercase;
-            transform: rotate(-15deg);
-            position: absolute;
-            pointer-events: none;
-        }
-
-        #toast {
-            position: fixed;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--sketch-black);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 0 0 15px 15px;
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000;
-            font-weight: 900;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        #toast.show { top: 0; }
-
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonexa Spin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{background:#0f172a;color:#fff} .card{background:#111827;border:1px solid #334155;border-radius:14px} </style>
 </head>
-<body>
+<body class="min-h-screen p-4">
+  <audio id="bg-audio" src="/background.mp3" loop></audio>
+  <audio id="click-audio" src="/click.mp3"></audio>
 
-    <!-- Loader -->
-    <div id="loader" class="fixed inset-0 bg-[#f0f4f8] z-[9999] flex flex-col items-center justify-center">
-        <div class="relative w-20 h-20 mb-4">
-            <div class="absolute inset-0 border-4 border-black border-dashed rounded-full animate-spin"></div>
-            <div class="absolute inset-0 flex items-center justify-center font-black text-xs">LOG</div>
-        </div>
-        <div class="sketch-font text-xl font-bold tracking-widest italic">LOADING RECORDS...</div>
+  <div class="max-w-4xl mx-auto space-y-4">
+    <div class="card p-4 flex items-center justify-between">
+      <div class="flex items-center gap-3"><img src="/toncoin.png" onerror="this.style.display='none'" class="w-9 h-9"><h1 class="font-bold text-xl">TONEXA AAA</h1></div>
+      <button onclick="playClick();toggleMusic()" class="bg-cyan-600 px-3 py-2 rounded">Müzik Aç/Kapat</button>
     </div>
 
-    <!-- UI Stats -->
-    <div class="p-4 grid grid-cols-2 gap-3">
-        <div class="premium-card p-2">
-            <span class="text-[8px] font-black opacity-40 uppercase block">Credits Accumulated</span>
-            <div class="flex items-center gap-2">
-                <i class="fas fa-pen-nib text-xs opacity-40"></i>
-                <span class="font-black text-xl" id="stat-art">0</span>
-            </div>
-        </div>
-        <div class="premium-card p-2">
-            <span class="text-[8px] font-black opacity-40 uppercase block">TON Liquidity</span>
-            <div class="flex items-center gap-2">
-                <i class="fas fa-gem text-blue-500 text-xs"></i>
-                <span class="font-black text-xl text-blue-600" id="stat-ton">0.000</span>
-            </div>
-        </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="card p-3">ART: <b id="art">0</b></div><div class="card p-3">TON: <b id="ton">0.000</b></div>
+      <div class="card p-3">Spin: <b id="spins">0</b></div><div class="card p-3">Reklam: <b id="ads">0</b>/50</div>
     </div>
 
-    <div class="px-4">
-        <div class="premium-card p-2 bg-blue-50 border-dashed flex justify-between items-center">
-            <div class="flex flex-col">
-                <span class="text-[9px] font-bold opacity-50 uppercase leading-none">Energy Reserve</span>
-                <div id="energy-dots" class="flex gap-1 mt-1"></div>
-            </div>
-            <div class="text-right">
-                <span id="stat-spins" class="font-black text-xl">0</span>
-                <span class="text-[10px] opacity-30">/5</span>
-            </div>
-        </div>
+    <div class="card p-4 text-center">
+      <div class="text-4xl">📌</div>
+      <canvas id="wheel" width="420" height="420" class="mx-auto"></canvas>
+      <button id="spinBtn" onclick="spin()" class="mt-3 bg-emerald-600 px-4 py-2 rounded font-bold">SPIN ÇEVİR</button>
+      <button onclick="watchAd()" class="mt-3 ml-2 bg-amber-600 px-4 py-2 rounded font-bold">REKLAM İZLE (+1)</button>
     </div>
 
-    <!-- Nav -->
-    <div class="side-nav">
-        <button class="nav-item" onclick="openPage('wallet')"><i class="fas fa-wallet text-xl"></i></button>
-        <button class="nav-item" onclick="openPage('swap')"><i class="fas fa-right-left text-xl"></i></button>
-        <button class="nav-item" onclick="openPage('friends')"><i class="fas fa-users-gear text-xl"></i></button>
-        <button class="nav-item" onclick="openPage('promo')"><i class="fas fa-tags text-xl"></i></button>
-        <button class="nav-item" onclick="openPage('records')"><i class="fas fa-folder-open text-xl"></i></button>
+    <div class="card p-4">
+      <h2 class="font-bold mb-2">Admin</h2>
+      <div class="flex flex-wrap gap-2">
+        <button class="bg-slate-700 px-3 py-2 rounded" onclick="adminPage('promo')">Promo Yönetimi</button>
+        <button class="bg-slate-700 px-3 py-2 rounded" onclick="adminPage('users')">Kullanıcılar</button>
+        <button class="bg-slate-700 px-3 py-2 rounded" onclick="adminPage('records')">Kayıtlar</button>
+      </div>
+      <div id="adminContent" class="mt-3 text-sm text-slate-200">Butona basınca sayfa burada açılır.</div>
     </div>
+  </div>
 
-    <!-- Game -->
-    <div class="flex flex-col items-center mt-6">
-        <div class="wheel-container">
-            <div class="pointer"><i class="fas fa-thumbtack"></i></div>
-            <canvas id="wheel-canvas" width="800" height="800"></canvas>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div class="w-12 h-12 bg-white border-4 border-black rounded-full flex items-center justify-center shadow-lg">
-                    <div class="w-1 h-1 bg-black rounded-full"></div>
-                </div>
-            </div>
-        </div>
-
-        <button id="spin-btn" onclick="handleSpin()" class="premium-card mt-12 px-16 py-5 bg-black text-white text-2xl font-black sketch-font italic tracking-widest active:scale-95">
-            EXECUTE SPIN
-        </button>
-        
-        <div class="mt-8 text-center opacity-30">
-            <p class="text-[9px] font-bold uppercase tracking-[0.4em]">Artisan Records & Engineering v4.2</p>
-            <p class="text-[7px] font-mono mt-1">S/N: 772-BLUE-PRINT-X</p>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div id="modal-overlay" class="modal-overlay" onclick="closePage()">
-        <div class="modal-body premium-card p-6 overflow-hidden" onclick="event.stopPropagation()">
-            <div class="stamp top-4 right-4 text-[10px]" id="modal-stamp">TOP SECRET</div>
-            <div class="flex justify-between items-start mb-6 border-b-2 border-black pb-3">
-                <div>
-                    <h2 id="modal-title" class="sketch-font text-2xl font-bold italic uppercase leading-none">Title</h2>
-                    <p class="text-[8px] font-black opacity-40 mt-1 uppercase">Technical Documentation</p>
-                </div>
-                <button onclick="closePage()" class="text-4xl leading-none">&times;</button>
-            </div>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" class="sketch-font">RECORD UPDATED</div>
-
-    <script>
-const state = { art:0, ton:0, spins:0, wallet:'', minWithdraw:0.2, records:{wallet:[],swap:[],friends:[],promo:[]} };
-const userId = 'demo';
-const sectors = [
-  { label:'15 ART', color:'#fff', text:'#000' },
-  { label:'0.01 TON', color:'#0088cc', text:'#fff' },
-  { label:'25 ART', color:'#f8f9fa', text:'#000' },
-  { label:'20 ART', color:'#1a1a1a', text:'#fff' },
-  { label:'50 ART', color:'#fff', text:'#000' },
-  { label:'10 ART', color:'#0088cc', text:'#fff' },
-  { label:'35 ART', color:'#dfe6e9', text:'#000' },
-  { label:'5 ART', color:'#2d3436', text:'#fff' }
+<script>
+const userId='demo';
+const sectors=[
+{label:'15 ART',color:'#fef08a',text:'#111',type:'art',val:15},
+{label:'0.01 TON',color:'#38bdf8',text:'#fff',type:'ton',val:0.01},
+{label:'25 ART',color:'#fca5a5',text:'#111',type:'art',val:25},
+{label:'20 ART',color:'#86efac',text:'#111',type:'art',val:20},
+{label:'50 ART',color:'#c4b5fd',text:'#111',type:'art',val:50},
+{label:'10 ART',color:'#fdba74',text:'#111',type:'art',val:10},
+{label:'35 ART',color:'#f9a8d4',text:'#111',type:'art',val:35},
+{label:'5 ART',color:'#93c5fd',text:'#111',type:'art',val:5},
 ];
-let rotation = 0; let spinning = false;
+let state={art:0,ton:0,spins:0,adWatchCount:0}; let rotation=0; let spinning=false;
+const c=document.getElementById('wheel'),ctx=c.getContext('2d');
 
-async function api(url, method='GET', body) {
-  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined });
-  if (!res.ok) throw new Error((await res.json()).error || 'ERR');
-  return res.json();
-}
-async function init(){
-  Object.assign(state, await api(`/api/state?userId=${userId}`));
-  drawWheel(); updateUI();
-  document.getElementById('loader').classList.add('hidden');
-}
-function updateUI(){
- document.getElementById('stat-art').innerText=Math.floor(state.art);
- document.getElementById('stat-ton').innerText=Number(state.ton).toFixed(3);
- document.getElementById('stat-spins').innerText=state.spins;
- const dots=document.getElementById('energy-dots'); dots.innerHTML='';
- for(let i=0;i<5;i++){ const d=document.createElement('div'); d.className=`w-2 h-2 rounded-sm border border-black rotate-45 ${i < state.spins ? 'bg-blue-500':'bg-transparent'}`; dots.appendChild(d); }
-}
-function drawWheel(){ const c=document.getElementById('wheel-canvas'),ctx=c.getContext('2d'); const slice=(Math.PI*2)/sectors.length; sectors.forEach((s,i)=>{const angle=i*slice;ctx.beginPath();ctx.fillStyle=s.color;ctx.moveTo(400,400);ctx.arc(400,400,385,angle,angle+slice);ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#1a1a1a';ctx.stroke();ctx.save();ctx.translate(400,400);ctx.rotate(angle+slice/2);ctx.textAlign='right';ctx.fillStyle=s.text;ctx.font='bold 36px Inter';ctx.fillText(s.label,350,14);ctx.restore();}); }
-function showToast(m){const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800)}
-async function handleSpin(){ if(spinning) return; if(state.spins<=0){showAdPrompt(); return;} spinning=true; const res=await api('/api/spin','POST',{userId}); state.spins=res.spins; state.art=res.art; state.ton=res.ton; updateUI(); const extra=8+Math.random()*6; rotation += (extra*360)+Math.floor(Math.random()*360); document.getElementById('wheel-canvas').style.transform=`rotate(${rotation}deg)`; setTimeout(()=>{spinning=false;showToast(`GAINED: ${res.win.label}`);},6000); }
-function showAdPrompt(){ openModal('AD REQUIRED', `<p class="text-xs mb-4">Spin bitti. Devam etmek için reklam izle.</p><button onclick="watchAd()" class="w-full premium-card p-4 bg-black text-white font-black">REKLAM İZLE (+1)</button>`); }
-async function watchAd(){ await api('/api/watch-ad','POST',{userId}); const st=await api(`/api/state?userId=${userId}`); Object.assign(state,st); updateUI(); closePage(); showToast('ENERGY +1'); }
-function openModal(title, html, stamp='TOP SECRET'){document.getElementById('modal-title').innerText=title;document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-stamp').innerText=stamp;document.getElementById('modal-overlay').classList.add('active');}
-function closePage(){document.getElementById('modal-overlay').classList.remove('active');}
-function openPage(page){
- if(page==='promo') return openModal('PROMO CODES',`<input id="p-code" class="w-full p-3 border-2 border-black" placeholder="KOD"><button onclick="redeem()" class="w-full mt-3 premium-card p-3 bg-black text-white font-black">AKTİVE ET</button><div class='mt-4 text-xs'>Kanal: <a class='text-blue-600' href='https://t.me/TonexaSpinChannel' target='_blank'>@TonexaSpinChannel</a><br>Bot: @TonexaSpinBot</div>`,'MARKETING');
- if(page==='wallet') return openModal('TON WITHDRAW',`<input id="w-addr" class="w-full p-3 border-2 border-black mb-3" value="${state.wallet}" placeholder="Wallet"><input id="w-amount" class="w-full p-3 border-2 border-black" placeholder="0.200"><button onclick="doWithdraw()" class="w-full mt-3 premium-card p-3 bg-blue-600 text-white font-black">HESABA AKTAR</button>`,'FINANCIAL');
- if(page==='swap') return openModal('ASSET SWAP',`<input id="s-val" class="w-full p-3 border-2 border-black" placeholder="1000" oninput="calc(this.value)"><p class="my-2">≈ <span id="calc-res">0.000</span> TON</p><button onclick="executeSwap()" class="w-full premium-card p-3 bg-black text-white font-black">DÖNÜŞÜM</button>`,'EXCHANGE');
- if(page==='friends') return openModal('ENGINEER LOG',`<p class='text-xs'>Referans sistemi backend üzerinde tutulur.</p>`,'NETWORK');
- if(page==='records') return renderRecords();
-}
-function calc(v){document.getElementById('calc-res').innerText=(Number(v||0)/10000).toFixed(3)}
-async function executeSwap(){try{const art=Number(document.getElementById('s-val').value||0);const r=await api('/api/swap','POST',{userId,art});state.art=r.art;state.ton=r.ton;updateUI();showToast('SWAP OK');closePage();}catch(e){showToast('SWAP ERROR')}}
-async function doWithdraw(){try{const wallet=document.getElementById('w-addr').value;const amount=Number(document.getElementById('w-amount').value||0);const r=await api('/api/withdraw','POST',{userId,wallet,amount});state.ton=r.ton;state.wallet=r.wallet;updateUI();showToast('WITHDRAW SENT');closePage();}catch(e){showToast('WITHDRAW ERROR')}}
-async function redeem(){try{await api('/api/redeem','POST',{userId,code:document.getElementById('p-code').value});const st=await api(`/api/state?userId=${userId}`);Object.assign(state,st);updateUI();showToast('PROMO OK');closePage();}catch(e){showToast('INVALID CODE')}}
-async function renderRecords(){const rec=await api(`/api/records?userId=${userId}`); const tab=(k,a)=>`<div class='premium-card p-3'><div class='font-black mb-2 uppercase text-xs'>${k}</div>${(a||[]).slice(0,6).map(x=>`<div class='text-[10px] mb-1'>• ${new Date(x.ts).toLocaleString()} - ${x.message}</div>`).join('')||'<div class="text-[10px] opacity-40">Kayıt yok</div>'}</div>`; openModal('RECORDS',`<div class='space-y-3'>${tab('Wallet',rec.wallet)}${tab('Swap',rec.swap)}${tab('Friends',rec.friends)}${tab('Promo',rec.promo)}</div>`,'ARCHIVE'); }
+async function api(url,m='GET',b){const r=await fetch(url,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||'ERR');return j}
+function playClick(){const a=document.getElementById('click-audio');a.currentTime=0;a.play().catch(()=>{});} function toggleMusic(){const a=document.getElementById('bg-audio');if(a.paused)a.play().catch(()=>{});else a.pause()}
+function draw(){ctx.clearRect(0,0,420,420);const slice=Math.PI*2/sectors.length;sectors.forEach((s,i)=>{const a=i*slice;ctx.beginPath();ctx.moveTo(210,210);ctx.arc(210,210,190,a,a+slice);ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#0f172a';ctx.lineWidth=2;ctx.stroke();ctx.save();ctx.translate(210,210);ctx.rotate(a+slice/2);ctx.fillStyle=s.text;ctx.font='bold 17px sans-serif';ctx.textAlign='right';ctx.fillText(s.label,170,6);ctx.restore();});}
+function pickedIndex(finalDeg){const normalized=((360-(finalDeg%360))+22.5)%360;return Math.floor(normalized/45)%sectors.length;}
+function bind(){art.textContent=Math.floor(state.art);ton.textContent=Number(state.ton).toFixed(3);spins.textContent=state.spins;ads.textContent=state.adWatchCount||0;}
+
+async function init(){draw(); state=await api(`/api/state?userId=${userId}`); bind();}
+async function spin(){if(spinning)return; if(state.spins<=0)return alert('Spin bitti, reklam izle.'); playClick(); spinning=true; const turns=8+Math.floor(Math.random()*4); const extra=Math.floor(Math.random()*360); rotation += turns*360 + extra; c.style.transition='transform 6s cubic-bezier(.15,0,.15,1)'; c.style.transform=`rotate(${rotation}deg)`; const idx=pickedIndex(rotation); setTimeout(async()=>{try{const r=await api('/api/spin','POST',{userId,index:idx}); state={...state,...r}; bind(); alert(`Ödül: ${sectors[idx].label}`);}catch(e){alert(e.message)} finally{spinning=false;} },6100)}
+async function watchAd(){try{playClick(); const r=await api('/api/watch-ad','POST',{userId}); state={...state,...r}; bind();}catch(e){alert(e.message==='AD_LIMIT_REACHED'?'Günlük 50 reklam limitine ulaştın.':e.message)}}
+async function adminPage(p){playClick(); if(p==='promo'){const promos=await api('/api/admin/promos'); adminContent.innerHTML=`<b>Promo Listesi</b><br>${promos.map(x=>`${x.id} - ödül:${x.reward} max:${x.maxUses} kullanılan:${x.used||0}`).join('<br>')||'Promo yok'}`; return;} if(p==='users')adminContent.textContent='Kullanıcı sayfası hazır.'; if(p==='records'){const rec=await api(`/api/records?userId=${userId}`); adminContent.textContent=JSON.stringify(rec,null,2);} }
 init();
-    </script>
+</script>
 </body>
 </html>
-
