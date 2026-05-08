@@ -1,264 +1,597 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tonexa Ads Pro</title>
-    <!-- Reklam SDK -->
-    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+    <title>TONEXA ELITE • Artisan Records</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Fira+Code:wght@400;700&family=Inter:wght@400;900&display=swap');
+
         :root {
-            --bg: #070b10;
-            --card: #121820;
-            --primary: #0088cc;
-            --text: #ffffff;
-            --text-dim: #8e97a2;
-            --success: #00c853;
+            --sketch-black: #1a1a1a;
+            --ton-blue: #0088cc;
+            --blueprint-bg: #f0f4f8;
+            --grid-line: #d1dce5;
+            --accent-red: #ff4757;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        body {
+            background-color: var(--blueprint-bg);
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 25px 25px;
+            font-family: 'Inter', sans-serif;
+            color: var(--sketch-black);
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            touch-action: manipulation;
+        }
 
-        /* Ekranlar */
-        .screen { display: none; padding: 20px; padding-bottom: 100px; animation: fadeIn 0.3s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sketch-font { font-family: 'Architects Daughter', cursive; }
 
-        /* Kartlar ve Butonlar */
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; }
-        .btn:disabled { opacity: 0.5; }
+        /* AAA El Çizimi Kartlar */
+        .premium-card {
+            background: white;
+            border: 2.5px solid var(--sketch-black);
+            box-shadow: 6px 6px 0px var(--sketch-black);
+            border-radius: 2px 15px 5px 12px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .balance-hero { text-align: center; padding: 30px 0; }
-        .balance-hero h1 { font-size: 45px; margin: 10px 0; color: var(--primary); }
+        .premium-card:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px var(--sketch-black);
+        }
 
-        /* Hızlı Miktar Butonları */
-        .quick-amounts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .q-btn { background: #1a222c; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; font-weight: bold; }
-        .q-btn:active { background: var(--primary); }
+        /* Navigasyon & REC Etiketleri */
+        .side-nav {
+            position: fixed;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; }
-        .input-group input { width: 100%; background: #0a0e14; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: white; outline: none; }
+        .nav-item {
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid var(--sketch-black);
+            border-radius: 8px 12px 6px 10px;
+            box-shadow: 4px 4px 0px var(--sketch-black);
+            position: relative;
+            transition: 0.2s;
+        }
 
-        /* Navigasyon */
-        .nav { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(18,24,32,0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; padding: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { flex: 1; text-align: center; color: var(--text-dim); text-decoration: none; font-size: 10px; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item i { font-size: 20px; }
+        .nav-item::after {
+            content: "REC";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 8px;
+            font-weight: 900;
+            color: white;
+            background: var(--accent-red);
+            padding: 1px 4px;
+            border: 1.5px solid var(--sketch-black);
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
 
-        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .nav-item:active { transform: scale(0.9); }
+
+        /* Çark */
+        .wheel-container {
+            position: relative;
+            width: 330px;
+            height: 330px;
+            border: 10px double var(--sketch-black);
+            border-radius: 50%;
+            background: white;
+            padding: 4px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        #wheel-canvas {
+            width: 100%;
+            height: 100%;
+            transition: transform 6s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 60;
+            font-size: 40px;
+            color: var(--sketch-black);
+            filter: drop-shadow(2px 2px 0px #fff);
+        }
+
+        /* Modal Sistemi */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(240, 244, 248, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.4s ease-in-out;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-body {
+            width: 92%;
+            max-width: 400px;
+            transform: scale(0.85) translateY(60px);
+            opacity: 0;
+            transition: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background-image: radial-gradient(var(--grid-line) 0.5px, transparent 0.5px);
+            background-size: 15px 15px;
+        }
+
+        .modal-overlay.active .modal-body {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* Damgalar (Stamps) */
+        .stamp {
+            border: 3px solid rgba(255, 71, 87, 0.4);
+            color: rgba(255, 71, 87, 0.4);
+            padding: 4px 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            transform: rotate(-15deg);
+            position: absolute;
+            pointer-events: none;
+        }
+
+        #toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--sketch-black);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 0 0 15px 15px;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+            font-weight: 900;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        #toast.show { top: 0; }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
 
-    <div id="loader"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--primary);"></i></div>
-
-    <!-- ANA SAYFA -->
-    <div id="home" class="screen active">
-        <div class="balance-hero">
-            <div style="font-size: 12px; color: var(--text-dim); letter-spacing: 1px;">TOPLAM BAKİYE (TON)</div>
-            <h1 id="ui-bal">0.0000</h1>
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-[#f0f4f8] z-[9999] flex flex-col items-center justify-center">
+        <div class="relative w-20 h-20 mb-4">
+            <div class="absolute inset-0 border-4 border-black border-dashed rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center font-black text-xs">LOG</div>
         </div>
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
-                <span>GÜNLÜK HEDEF</span>
-                <span id="ui-ads">0 / 100</span>
+        <div class="sketch-font text-xl font-bold tracking-widest italic">LOADING RECORDS...</div>
+    </div>
+
+    <!-- UI Stats -->
+    <div class="p-4 grid grid-cols-2 gap-3">
+        <div class="premium-card p-2">
+            <span class="text-[8px] font-black opacity-40 uppercase block">Credits Accumulated</span>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-pen-nib text-xs opacity-40"></i>
+                <span class="font-black text-xl" id="stat-art">0</span>
             </div>
-            <button class="btn" id="ad-btn" onclick="playAd()">
-                <i class="fas fa-play-circle"></i> REKLAM İZLE KAZAN
-            </button>
+        </div>
+        <div class="premium-card p-2">
+            <span class="text-[8px] font-black opacity-40 uppercase block">TON Liquidity</span>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-gem text-blue-500 text-xs"></i>
+                <span class="font-black text-xl text-blue-600" id="stat-ton">0.000</span>
+            </div>
         </div>
     </div>
 
-    <!-- CÜZDAN / ÇEKİM -->
-    <div id="wallet" class="screen">
-        <h3>Cüzdanım</h3>
-        <div class="card">
-            <div class="input-group">
-                <label>ÇEKİLECEK MİKTAR</label>
-                <input type="number" id="withdraw-input" placeholder="0.00">
+    <div class="px-4">
+        <div class="premium-card p-2 bg-blue-50 border-dashed flex justify-between items-center">
+            <div class="flex flex-col">
+                <span class="text-[9px] font-bold opacity-50 uppercase leading-none">Energy Reserve</span>
+                <div id="energy-dots" class="flex gap-1 mt-1"></div>
             </div>
-            <div class="quick-amounts">
-                <button class="q-btn" onclick="setWithdrawAmt(0.10)">0.10</button>
-                <button class="q-btn" onclick="setWithdrawAmt(0.50)">0.50</button>
-                <button class="q-btn" onclick="setWithdrawAmt('max')">MAX</button>
+            <div class="text-right">
+                <span id="stat-spins" class="font-black text-xl">0</span>
+                <span class="text-[10px] opacity-30">/5</span>
             </div>
-            <div class="input-group">
-                <label>ÖDEME ADRESİ</label>
-                <input type="text" id="wallet-display" readonly placeholder="Ayarlardan adres kaydedin">
-            </div>
-            <button class="btn" onclick="requestWithdraw()">
-                <i class="fas fa-wallet"></i> BAKİYEYİ ÇEK
-            </button>
         </div>
     </div>
 
-    <!-- AYARLAR -->
-    <div id="settings" class="screen">
-        <h3>Profil Ayarları</h3>
-        <div class="card">
-            <div class="input-group">
-                <label>TON CÜZDAN ADRESİ (UQ... veya EQ...)</label>
-                <input type="text" id="wallet-input" placeholder="Cüzdan adresinizi yapıştırın">
+    <!-- Nav -->
+    <div class="side-nav">
+        <button class="nav-item" onclick="openPage('wallet')"><i class="fas fa-wallet text-xl"></i></button>
+        <button class="nav-item" onclick="openPage('swap')"><i class="fas fa-right-left text-xl"></i></button>
+        <button class="nav-item" onclick="openPage('friends')"><i class="fas fa-users-gear text-xl"></i></button>
+        <button class="nav-item" onclick="openPage('promo')"><i class="fas fa-tags text-xl"></i></button>
+    </div>
+
+    <!-- Game -->
+    <div class="flex flex-col items-center mt-6">
+        <div class="wheel-container">
+            <div class="pointer"><i class="fas fa-thumbtack"></i></div>
+            <canvas id="wheel-canvas" width="800" height="800"></canvas>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-12 h-12 bg-white border-4 border-black rounded-full flex items-center justify-center shadow-lg">
+                    <div class="w-1 h-1 bg-black rounded-full"></div>
+                </div>
             </div>
-            <button class="btn" onclick="saveWallet()">
-                <i class="fas fa-save"></i> ADRESİ GÜNCELLE
-            </button>
         </div>
-        <div class="card" style="text-align: center;">
-            <p style="font-size: 13px; color: var(--text-dim);">Arkadaşlarını davet et, her kayıt olan için 0.01 TON kazan!</p>
-            <button class="btn" onclick="copyRef()">
-                <i class="fas fa-copy"></i> DAVET LİNKİNİ KOPYALA
-            </button>
+
+        <button id="spin-btn" onclick="handleSpin()" class="premium-card mt-12 px-16 py-5 bg-black text-white text-2xl font-black sketch-font italic tracking-widest active:scale-95">
+            EXECUTE SPIN
+        </button>
+        
+        <div class="mt-8 text-center opacity-30">
+            <p class="text-[9px] font-bold uppercase tracking-[0.4em]">Artisan Records & Engineering v4.2</p>
+            <p class="text-[7px] font-mono mt-1">S/N: 772-BLUE-PRINT-X</p>
         </div>
     </div>
 
-    <nav class="nav">
-        <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('home', this)">
-            <i class="fas fa-home"></i><span>ANA SAYFA</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="switchTab('wallet', this)">
-            <i class="fas fa-wallet"></i><span>CÜZDAN</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="switchTab('settings', this)">
-            <i class="fas fa-user-cog"></i><span>AYARLAR</span>
-        </a>
-    </nav>
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closePage()">
+        <div class="modal-body premium-card p-6 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="stamp top-4 right-4 text-[10px]" id="modal-stamp">TOP SECRET</div>
+            <div class="flex justify-between items-start mb-6 border-b-2 border-black pb-3">
+                <div>
+                    <h2 id="modal-title" class="sketch-font text-2xl font-bold italic uppercase leading-none">Title</h2>
+                    <p class="text-[8px] font-black opacity-40 mt-1 uppercase">Technical Documentation</p>
+                </div>
+                <button onclick="closePage()" class="text-4xl leading-none">&times;</button>
+            </div>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="sketch-font">RECORD UPDATED</div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const API = window.location.origin; // Otomatik URL tespiti
-        let user = null;
+        
+        let state = {
+            art: 500,
+            ton: 0.150,
+            spins: 0,
+            wallet: localStorage.getItem('art_wallet') || '',
+            minWithdraw: 0.2,
+            hasClaimedGift: localStorage.getItem('gift_claimed_v2') === 'true'
+        };
 
-        // SDK Başlatma
-        if (window.TelegramAdsController) {
-            window.TelegramAdsController.initialize({ pubId: "988708", appId: "7279" });
-        }
+        const sectors = [
+            { label: "15 ART", val: 15, type: 'art', color: "#fff", text: "#000" },
+            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#0088cc", text: "#fff" },
+            { label: "25 ART", val: 25, type: 'art', color: "#f8f9fa", text: "#000" },
+            { label: "0.02 TON", val: 0.02, type: 'ton', color: "#1a1a1a", text: "#fff" },
+            { label: "20 ART", val: 20, type: 'art', color: "#fff", text: "#000" },
+            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#0088cc", text: "#fff" },
+            { label: "50 ART", val: 50, type: 'art', color: "#dfe6e9", text: "#000" },
+            { label: "0.01 TON", val: 0.01, type: 'ton', color: "#2d3436", text: "#fff" }
+        ];
 
-        async function syncData() {
-            const tgUser = tg.initDataUnsafe.user || { id: "6296765793", first_name: "Test" };
-            try {
-                const res = await fetch(`${API}/api/sync`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        id: tgUser.id,
-                        first_name: tgUser.first_name,
-                        username: tgUser.username,
-                        start_param: tg.initDataUnsafe.start_param
-                    })
-                });
-                user = await res.json();
-                updateUI();
-            } catch (e) {
-                tg.showAlert("Sunucu bağlantısı sağlanamadı!");
-            } finally {
-                document.getElementById('loader').style.display = 'none';
-            }
+        let rotation = 0;
+        let spinning = false;
+
+        function init() {
+            tg.expand();
+            drawWheel();
+            updateUI();
+            
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                if(!state.hasClaimedGift) showGiftPopup();
+            }, 1500);
         }
 
         function updateUI() {
-            document.getElementById('ui-bal').innerText = user.balance.toFixed(4);
-            document.getElementById('ui-ads').innerText = `${user.adsToday} / 100`;
-            document.getElementById('wallet-display').value = user.walletAddress || "Adres Kayıtlı Değil";
-            document.getElementById('wallet-input').value = user.walletAddress || "";
-        }
+            document.getElementById('stat-art').innerText = Math.floor(state.art);
+            document.getElementById('stat-ton').innerText = state.ton.toFixed(3);
+            document.getElementById('stat-spins').innerText = state.spins;
 
-        function switchTab(id, el) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-            tg.HapticFeedback.selectionChanged();
-        }
-
-        function setWithdrawAmt(v) {
-            const input = document.getElementById('withdraw-input');
-            if (v === 'max') input.value = user.balance.toFixed(2);
-            else input.value = v;
-        }
-
-        async function saveWallet() {
-            const addr = document.getElementById('wallet-input').value.trim();
-            if (addr.length < 10) return tg.showAlert("Geçersiz cüzdan adresi!");
-
-            const res = await fetch(`${API}/api/user/update-wallet`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId: user.uid, walletAddress: addr })
-            });
-            if (res.ok) {
-                user.walletAddress = addr;
-                updateUI();
-                tg.showAlert("Cüzdan adresiniz güncellendi!");
+            const dots = document.getElementById('energy-dots');
+            dots.innerHTML = '';
+            for(let i=0; i<5; i++) {
+                const d = document.createElement('div');
+                d.className = `w-2 h-2 rounded-sm border border-black rotate-45 ${i < state.spins ? 'bg-blue-500' : 'bg-transparent'}`;
+                dots.appendChild(d);
             }
         }
 
-        async function playAd() {
-            const btn = document.getElementById('ad-btn');
-            if (user.adsToday >= 100) return tg.showAlert("Günlük limite ulaştınız!");
+        function drawWheel() {
+            const canvas = document.getElementById('wheel-canvas');
+            const ctx = canvas.getContext('2d');
+            const slice = (Math.PI * 2) / sectors.length;
+
+            sectors.forEach((s, i) => {
+                const angle = i * slice;
+                ctx.beginPath();
+                ctx.fillStyle = s.color;
+                ctx.moveTo(400, 400);
+                ctx.arc(400, 400, 385, angle, angle + slice);
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = "#1a1a1a";
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(400, 400);
+                ctx.rotate(angle + slice/2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = s.text;
+                ctx.font = "bold 36px Inter";
+                ctx.fillText(s.label, 350, 14);
+                ctx.restore();
+            });
+        }
+
+        function showGiftPopup() {
+            const overlay = document.getElementById('modal-overlay');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-stamp').innerText = "CERTIFIED";
             
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> YÜKLENİYOR...';
-
-            window.TelegramAdsController.playAd({
-                type: 'rewarded',
-                onCompleted: async () => {
-                    const res = await fetch(`${API}/api/reward`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ userId: user.uid })
-                    });
-                    const data = await res.json();
-                    user.balance = data.balance;
-                    user.adsToday += 1;
-                    updateUI();
-                    tg.HapticFeedback.notificationOccurred('success');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play-circle"></i> REKLAM İZLE KAZAN';
-                },
-                onFailed: () => {
-                    tg.showAlert("Reklam şu an müsait değil.");
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play-circle"></i> REKLAM İZLE KAZAN';
-                }
-            });
+            title.innerText = "INITIAL GRANT";
+            content.innerHTML = `
+                <div class="text-center py-6">
+                    <div class="relative inline-block mb-4">
+                        <i class="fas fa-box-open text-7xl text-orange-400"></i>
+                        <div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 font-black rounded border-2 border-black">URGENT</div>
+                    </div>
+                    <p class="sketch-font text-2xl mb-2">Artisan Welcome Pack</p>
+                    <p class="text-[10px] opacity-40 mb-6 uppercase">Assigned to your engineering profile</p>
+                    <div class="premium-card p-6 bg-blue-50 mb-8 border-dashed flex justify-around items-center">
+                        <div class="text-center"><span class="block font-black text-2xl">+2</span><span class="text-[8px] uppercase">Spins</span></div>
+                        <div class="h-8 w-[2px] bg-black opacity-10"></div>
+                        <div class="text-center"><span class="block font-black text-2xl">50</span><span class="text-[8px] uppercase">Art</span></div>
+                    </div>
+                    <button onclick="claimGift()" class="w-full premium-card p-5 bg-black text-white font-black italic text-xl">OPEN RECORD</button>
+                </div>
+            `;
+            overlay.classList.add('active');
         }
 
-        async function requestWithdraw() {
-            const amount = parseFloat(document.getElementById('withdraw-input').value);
-            if (!user.walletAddress) return tg.showAlert("Önce ayarlardan cüzdan adresi kaydedin!");
-            if (amount < 0.1) return tg.showAlert("Minimum çekim 0.10 TON!");
-            if (amount > user.balance) return tg.showAlert("Yetersiz bakiye!");
+        window.claimGift = () => {
+            state.spins += 2;
+            state.art += 50;
+            state.hasClaimedGift = true;
+            localStorage.setItem('gift_claimed_v2', 'true');
+            updateUI();
+            closePage();
+            showToast("GRANTS RECEIVED");
+        };
 
-            const res = await fetch(`${API}/api/withdraw`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId: user.uid, address: user.walletAddress, amount: amount })
-            });
-            if (res.ok) {
-                user.balance -= amount;
+        function handleSpin() {
+            if (spinning || state.spins <= 0) {
+                if(state.spins <= 0) showToast("LOW ENERGY");
+                return;
+            }
+            spinning = true;
+            state.spins--;
+            updateUI();
+
+            const extra = 8 + Math.random() * 6;
+            const deg = Math.floor(Math.random() * 360);
+            rotation += (extra * 360) + deg;
+            
+            document.getElementById('wheel-canvas').style.transform = `rotate(${rotation}deg)`;
+
+            setTimeout(() => {
+                spinning = false;
+                const actual = rotation % 360;
+                const index = Math.floor((360 - (actual % 360) + 270) % 360 / (360/sectors.length));
+                const win = sectors[index];
+                
+                if(win.type === 'art') state.art += win.val;
+                else state.ton += win.val;
+
                 updateUI();
-                tg.showAlert("Çekim talebi gönderildi! 24 saat içinde onaylanacaktır.");
+                showToast(`GAINED: ${win.label}`);
+            }, 6000);
+        }
+
+        function openPage(page) {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            const title = document.getElementById('modal-title');
+            const stamp = document.getElementById('modal-stamp');
+            
+            overlay.classList.remove('closing');
+            overlay.classList.add('active');
+
+            switch(page) {
+                case 'promo':
+                    stamp.innerText = "MARKETING";
+                    title.innerText = "PROMO CODES";
+                    content.innerHTML = `
+                        <div class="space-y-5">
+                            <div class="premium-card p-4 bg-orange-50 border-dashed text-center">
+                                <i class="fab fa-telegram text-4xl text-blue-500 mb-2"></i>
+                                <p class="font-black text-sm uppercase">Resmi Telegram Kanalı</p>
+                                <p class="text-[10px] opacity-60 mb-3">Kodlar ve güncellemeler anlık olarak kanalda paylaşılmaktadır!</p>
+                                <a href="#" class="inline-block px-6 py-2 bg-blue-500 text-white font-black text-xs rounded border-2 border-black">KANALA KATIL</a>
+                            </div>
+                            <div class="relative">
+                                <p class="text-[9px] font-black opacity-40 mb-1 uppercase px-1">Giriş Yap</p>
+                                <input type="text" id="p-code" class="w-full p-4 border-2 border-black rounded-lg text-center font-bold tracking-widest uppercase outline-none sketch-font text-xl" placeholder="KOD-GIRINIZ">
+                            </div>
+                            <button onclick="redeem()" class="w-full premium-card p-4 bg-black text-white font-black italic">AKTİVE ET</button>
+                        </div>
+                    `;
+                    break;
+                case 'wallet':
+                    stamp.innerText = "FINANCIAL";
+                    title.innerText = "TON WITHDRAW";
+                    content.innerHTML = `
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="premium-card p-3 bg-gray-50">
+                                    <span class="text-[8px] block opacity-40">MINIMUM</span>
+                                    <span class="font-black">0.200 TON</span>
+                                </div>
+                                <div class="premium-card p-3 bg-gray-50 text-right">
+                                    <span class="text-[8px] block opacity-40">AVAILABLE</span>
+                                    <span class="font-black text-blue-600">${state.ton.toFixed(3)} TON</span>
+                                </div>
+                            </div>
+                            <div class="premium-card p-4">
+                                <p class="text-[10px] font-black opacity-40 mb-2 uppercase">Destinasyon Adresi</p>
+                                <input type="text" id="w-addr" value="${state.wallet}" class="w-full font-mono text-xs outline-none border-b-2 border-dotted border-black pb-1" placeholder="UQA123...">
+                            </div>
+                            <div class="premium-card p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-[10px] font-black opacity-40 uppercase">Çekilecek Miktar</p>
+                                    <button onclick="setMax()" class="text-[9px] bg-black text-white px-2 py-0.5 rounded font-black">MAX</button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="w-amount" class="w-full text-2xl font-black outline-none" placeholder="0.000">
+                                    <span class="font-black opacity-30">TON</span>
+                                </div>
+                            </div>
+                            <button onclick="doWithdraw()" class="w-full premium-card p-5 bg-blue-600 text-white font-black italic text-lg">HESABA AKTAR</button>
+                            <p class="text-[8px] text-center opacity-40 italic">Not: Transferler teknik incelemeden sonra 24 saat içinde tamamlanır.</p>
+                        </div>
+                    `;
+                    break;
+                case 'swap':
+                    stamp.innerText = "EXCHANGE";
+                    title.innerText = "ASSET SWAP";
+                    content.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="premium-card p-5 bg-white">
+                                <div class="flex justify-between text-[10px] font-black opacity-40 mb-2 uppercase"><span>Giriş</span><span>Bakiye: ${state.art}</span></div>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" id="s-val" oninput="calc(this.value)" class="text-3xl font-black w-full outline-none" placeholder="1000">
+                                    <span class="font-black">ART</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-center -my-2 relative z-10">
+                                <div class="bg-black text-white p-2 rounded-full border-2 border-white shadow-lg"><i class="fas fa-arrow-down"></i></div>
+                            </div>
+                            <div class="premium-card p-5 bg-blue-50">
+                                <div class="flex justify-between text-[10px] font-black opacity-40 mb-2 uppercase"><span>Çıkış (Tahmini)</span></div>
+                                <div class="flex items-center gap-3">
+                                    <div id="calc-res" class="text-3xl font-black text-blue-600">0.000</div>
+                                    <span class="font-black text-blue-600">TON</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border-2 border-black border-dashed rounded bg-gray-50">
+                                <p class="text-[9px] font-black opacity-50 uppercase">Swap Şartı</p>
+                                <p class="text-[10px] italic">10,000 ART = 1 TON oranında teknik dönüşüm uygulanır.</p>
+                            </div>
+                            <button onclick="executeSwap()" class="w-full premium-card p-5 bg-black text-white font-black italic">DÖNÜŞÜMÜ BAŞLAT</button>
+                        </div>
+                    `;
+                    break;
+                case 'friends':
+                    stamp.innerText = "NETWORK";
+                    title.innerText = "ENGINEER LOG";
+                    content.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="premium-card p-6 text-center bg-yellow-50">
+                                <p class="sketch-font text-xl mb-2">Ağını Genişlet!</p>
+                                <p class="text-[10px] opacity-60 uppercase mb-4">Her yeni mühendis için +1 Enerji kaydı açılır.</p>
+                                <div class="flex justify-center gap-4">
+                                    <div class="text-center"><span class="block font-black text-lg">0</span><span class="text-[8px] opacity-40 uppercase">Referans</span></div>
+                                    <div class="text-center"><span class="block font-black text-lg text-green-600">+0</span><span class="text-[8px] opacity-40 uppercase">Toplam Ton</span></div>
+                                </div>
+                            </div>
+                            <div class="premium-card p-4 border-dashed">
+                                <p class="text-[10px] font-black opacity-40 mb-2 uppercase">Davet Linkin</p>
+                                <div class="bg-gray-100 p-2 text-[10px] font-mono break-all border border-black rounded">https://t.me/tonexa_bot?start=user${Math.floor(Math.random()*9999)}</div>
+                            </div>
+                            <button onclick="copyLink()" class="w-full premium-card p-5 bg-black text-white font-black italic">LİNKİ KOPYALA</button>
+                        </div>
+                    `;
+                    break;
             }
         }
 
-        function copyRef() {
-            const link = `https://t.me/TonexaAdsBot?start=${user.uid}`;
-            const el = document.createElement('textarea');
-            el.value = link; document.body.appendChild(el);
-            el.select(); document.execCommand('copy');
-            document.body.removeChild(el);
-            tg.showAlert("Referans linkiniz kopyalandı!");
+        function closePage() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.add('closing');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                overlay.classList.remove('closing');
+            }, 400);
         }
 
-        window.onload = () => {
-            tg.expand();
-            syncData();
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Logic Functions
+        window.setMax = () => {
+            document.getElementById('w-amount').value = state.ton.toFixed(3);
         };
+
+        window.doWithdraw = () => {
+            const amt = parseFloat(document.getElementById('w-amount').value);
+            const addr = document.getElementById('w-addr').value;
+            
+            if(!addr || addr.length < 10) return tg.showAlert("Geçersiz cüzdan adresi!");
+            if(isNaN(amt) || amt < state.minWithdraw) return tg.showAlert(`Minimum çekim miktarı ${state.minWithdraw} TON olmalıdır!`);
+            if(amt > state.ton) return tg.showAlert("Yetersiz bakiye!");
+
+            state.wallet = addr;
+            localStorage.setItem('art_wallet', addr);
+            tg.showAlert(`Çekim talebi alındı: ${amt} TON.\nİncelemeden sonra gönderilecektir.`);
+            closePage();
+        };
+
+        window.calc = (v) => {
+            document.getElementById('calc-res').innerText = (v * 0.0001).toFixed(3);
+        };
+
+        window.redeem = () => {
+            const code = document.getElementById('p-code').value;
+            if(!code) return;
+            tg.showAlert("Bu kod sistemde taranıyor...");
+            closePage();
+            showToast("PROCESS LOGGED");
+        };
+
+        window.copyLink = () => {
+            showToast("LINK COPIED");
+        };
+
+        window.onload = init;
     </script>
 </body>
 </html>
+
+```
